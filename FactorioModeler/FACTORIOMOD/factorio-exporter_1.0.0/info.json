@@ -1,0 +1,11 @@
+{
+  "name": "factorio-exporter",
+  "version": "1.0.0",
+  "title": "Factorio Data Exporter",
+  "description": "Exports items, recipes, machines, technologies and icons to JSON files",
+  "author": "DataExporter",
+  "factorio_version": "1.1",
+  "dependencies": ["base"],
+  "contact": "",
+  "homepage": ""
+}
