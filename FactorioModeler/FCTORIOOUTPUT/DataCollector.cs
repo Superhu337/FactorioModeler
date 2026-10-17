@@ -254,10 +254,10 @@ namespace FactorioModeler.FACTORIOOUTPUT
         public string Statistics()
         {
             string s = "" +
-                $"=== Factorio Data Statistics ===\n" +
-                $"Items: {GetItemCount()}\n" +
-                $"Recipes: {GetRecipeCount()}\n" +
-                $"Machines: {GetMachineCount()}\n" +
+                $"Factorio Data Statistics{Environment.NewLine}" +
+                $"Items: {GetItemCount()}{Environment.NewLine}" +
+                $"Recipes: {GetRecipeCount()}{Environment.NewLine}" +
+                $"Machines: {GetMachineCount()}{Environment.NewLine}" +
                 $"Technologies: {GetTechnologyCount()}";
             return s;
         }
