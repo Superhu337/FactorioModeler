@@ -28,6 +28,7 @@ namespace FactorioModeler
             InitializeComponent();
 
             GetStatistics = data.StartDataColletctor();
+            Console.WriteLine(GetStatistics);
 
             this.DataContext = this;
         }

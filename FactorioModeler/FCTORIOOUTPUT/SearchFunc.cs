@@ -37,7 +37,7 @@ namespace FactorioModeler.FCTORIOOUTPUT
 
         /// <summary>
         /// Автоматически найти путь к FACTORIOMOD
-        /// C:\Users\{UserName}\source\repos\FactorioModeler\FactorioModeler\FACTORIOMOD
+        /// C:\FACTORIOMOD
         /// </summary>
         public static string FindModSourse()
         {
