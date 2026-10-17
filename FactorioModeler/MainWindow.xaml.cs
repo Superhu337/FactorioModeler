@@ -22,15 +22,13 @@ namespace FactorioModeler
     public partial class MainWindow : Window
     {
         DataCollector data = new DataCollector();
-        public string GetStatistics
-        {
-            get => data.StartDataColletctor();
-            set => data.StartDataColletctor();
-        }
+        public string GetStatistics;
         public MainWindow()
         {
             InitializeComponent();
-            
+
+            GetStatistics = data.StartDataColletctor();
+
             this.DataContext = this;
         }
     }

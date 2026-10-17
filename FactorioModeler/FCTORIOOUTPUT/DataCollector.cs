@@ -1,24 +1,26 @@
-﻿using System;
+﻿using FactorioModeler.FCTORIOOUTPUT;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading; 
 using System.Threading.Tasks;
 using System.Windows.Controls;
-using System.Diagnostics;
-using System.Threading; 
 
 namespace FactorioModeler.FACTORIOOUTPUT
 {
     public class DataCollector
     {
-        public string PathToFactorio = FactorioIconExtractor.FindFactorioPath();
-        public string PathToFactorioExe = FactorioIconExtractor.FindFactorioExePath() + "\\factorio.exe";
-        public string ExporterPath = "script-output\\exporter";
-        public string ModeSourse = "C:\\Users\\dima\\source\\repos\\FactorioModeler\\FactorioModeler\\FACTORIOMOD";
-        public string PathToMods = "C:\\Users\\dima\\AppData\\Roaming\\Factorio\\mods";
+        public string PathToFactorio = SearchFunc.FindFactorioPath();
+        public string PathToFactorioExe = SearchFunc.FindFactorioExePath();
+        public string ExporterPath = SearchFunc.FindFactorioSrciptOutput();
+        public string ModeSourse = SearchFunc.FindModSourse();
+        public string PathToMods = SearchFunc.FindFactorioMods();
         private List<FactorioItem> _items;
         private List<FactorioRecipe> _recipes;
         private List<FactorioMachine> _machines;
@@ -35,19 +37,20 @@ namespace FactorioModeler.FACTORIOOUTPUT
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
+
         /// <summary>
         /// Загрузить все данные из директории
         /// </summary>
         public void LoadAll()
         {
-            string dataDirectory = PathToFactorio + ExporterPath;
-            Thread.Sleep(1000);
+            string dataDirectory = ExporterPath;
+            Thread.Sleep(5000);
 
             LoadItems(Path.Combine(dataDirectory, "items.json"));
             LoadRecipes(Path.Combine(dataDirectory, "recipes.json"));
             LoadMachines(Path.Combine(dataDirectory, "machines.json"));
             LoadTechnologies(Path.Combine(dataDirectory, "technologies.json"));
-            LoadIconPaths(Path.Combine(dataDirectory, "icons.json"));
+            //LoadIconPaths(Path.Combine(dataDirectory, "icons.json"));
         }
 
         /// <summary>
@@ -309,28 +312,27 @@ namespace FactorioModeler.FACTORIOOUTPUT
         {
             if (SaveName == "") //TODO implement
             {
-                SaveName = "C:\\Users\\dima\\AppData\\Roaming\\Factorio\\saves\\ForScript.zip";
+                SaveName = SearchFunc.FindFactorioSave() + "\\ForScript.zip";//"C:\\Users\\dima\\AppData\\Roaming\\Factorio\\saves\\ForScript.zip"
             }
             // "C:\Program Files (x86)\Steam\steamapps\common\Factorio\bin\x64\factorio.exe" --start-server "C:\Users\dima\AppData\Roaming\Factorio\saves\123.zip"
             string argument = $"--start-server \"{SaveName}\"";
 
-            string targetLine = "Info ServerMultiplayerManager";
+            string targetLine = "changing state from(CreatingGame) to(InGame)";
 
-            Process serverProcess = await StartServerAsWaitForLineAsync(PathToFactorioExe, SaveName, targetLine);
+            StartServerAsWaitForLineAsync(PathToFactorioExe, argument, targetLine);
 
-            StopFactorioServer(serverProcess);
+            
 
         }
-        static async Task<Process> StartServerAsWaitForLineAsync(string pathToExe, string SaveName, string targetLine)
+        static void StartServerAsWaitForLineAsync(string pathToExe, string argument, string targetLine)
         {
-            var tcs = new TaskCompletionSource<Process>();
 
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
                 FileName = pathToExe.Trim('"'),
-                Arguments = $"{SaveName}",
+                Arguments = $"{argument}",
                 RedirectStandardOutput = true, // Разрешаем перехват вывода
-                RedirectStandardError = true,  // Разрешаем перехват ошибок
+                //RedirectStandardError = true,  // Разрешаем перехват ошибок
                 UseShellExecute = false,       // Обязательно для перенаправления потоков
                 CreateNoWindow = true,         // Не открывать черное окно консоли cmd
                 StandardOutputEncoding = System.Text.Encoding.GetEncoding(866) // Исправляет кракозябры (кириллицу) в Windows
@@ -348,28 +350,24 @@ namespace FactorioModeler.FACTORIOOUTPUT
                 // Если нашли нужную строку и задача еще не была завершена
                 if (e.Data.Contains(targetLine, StringComparison.OrdinalIgnoreCase))
                 {
-                    // Разрешаем await в методе Main идти дальше и возвращаем объект процесса
-                    tcs.TrySetResult(process);
+                    StopFactorioServer(process);
                 }
             };
 
             process.Start();
             process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-
-            // Возвращаем Task. Выполнение Main заморозится на этой строчке, пока не сработает tcs.TrySetResult()
-            return await tcs.Task;
-        }
+            //process.BeginErrorReadLine();
+            
+            }
         static void StopFactorioServer(Process serverProcess)
         {
-            if (serverProcess != null && !serverProcess.HasExited)
-            {
-                Console.WriteLine("Останавливаем сервер...");
-                serverProcess.Kill();
-                serverProcess.WaitForExit();
-                serverProcess.Dispose();
-                Console.WriteLine("Сервер успешно остановлен.");
-            }
+
+            Console.WriteLine("Останавливаем сервер...");
+            serverProcess.Kill();
+            serverProcess.WaitForExit();
+            serverProcess.Dispose();
+            Console.WriteLine("Сервер успешно остановлен.");
+
         }
 
         public string StartDataColletctor()
@@ -382,11 +380,6 @@ namespace FactorioModeler.FACTORIOOUTPUT
             LoadAll();
             var statistic = Statistics();
             return statistic;
-        }
-
-        public DataCollector()
-        {
-            StartDataColletctor();
         }
     }
 }

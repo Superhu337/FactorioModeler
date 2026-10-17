@@ -4,10 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.IO;
 
 /// <summary>
 /// Извлекает и копирует иконки предметов и рецептов из Factorio
@@ -35,76 +35,6 @@ namespace FactorioModeler.FACTORIOOUTPUT
             }
         }
 
-        /// <summary>
-        /// Автоматически найти путь к Factorio
-        /// </summary>
-        public static string FindFactorioPath()
-        {
-            string[] possiblePaths = new[]
-            {
-                // Windows Steam
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
-                    "Steam", "steamapps", "common", "Factorio"),
-            
-                // Windows GOG
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
-                    "GOG Games", "Factorio", "data"),
-            
-                // Linux Steam
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                    ".steam", "steam", "steamapps", "common", "Factorio", "data"),
-            
-                // macOS Steam
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                    "Library", "Application Support", "Steam", "steamapps", "common", "Factorio", "data")
-            };
-
-            foreach (var path in possiblePaths)
-            {
-                if (Directory.Exists(path))
-                {
-                    Console.WriteLine($"✓ Найден Factorio: {path}");
-                    return path;
-                }
-            }
-
-            throw new DirectoryNotFoundException(
-                "Не найена папка Factorio. Убедитесь, что Factorio установлен или укажите путь вручную.");
-        }
-
-        public static string FindFactorioExePath()
-        {
-            string[] possiblePaths = new[]
-            {
-                // Windows Steam
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
-                    "Steam", "steamapps", "common", "Factorio", "bin", "x64"),
-            
-                // Windows GOG
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
-                    "GOG Games", "Factorio", "data"),
-            
-                // Linux Steam
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                    ".steam", "steam", "steamapps", "common", "Factorio", "data"),
-            
-                // macOS Steam
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                    "Library", "Application Support", "Steam", "steamapps", "common", "Factorio", "data")
-            };
-
-            foreach (var path in possiblePaths)
-            {
-                if (Directory.Exists(path))
-                {
-                    Console.WriteLine($"✓ Найден Factorio: {path}");
-                    return path;
-                }
-            }
-
-            throw new DirectoryNotFoundException(
-                "Не найена папка Factorio. Убедитесь, что Factorio установлен или укажите путь вручную.");
-        }
 
         /// <summary>
         /// Извлечь иконки из JSON маппинга (из icons.json)

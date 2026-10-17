@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -15,10 +15,10 @@ public class FactorioItem
     public string Name { get; set; }
 
     [JsonPropertyName("localised_name")]
-    public string LocalisedName { get; set; }
+    public JsonElement LocalisedName { get; set; }
 
     [JsonPropertyName("localised_description")]
-    public string LocalisedDescription { get; set; }
+    public JsonElement LocalisedDescription { get; set; }
 
     [JsonPropertyName("type")]
     public string Type { get; set; }
@@ -100,7 +100,7 @@ public class FactorioRecipe
     public string Name { get; set; }
 
     [JsonPropertyName("localised_name")]
-    public string LocalisedName { get; set; }
+    public JsonElement LocalisedName { get; set; }
 
     [JsonPropertyName("category")]
     public string Category { get; set; }
@@ -140,7 +140,7 @@ public class FactorioMachine
     public string Name { get; set; }
 
     [JsonPropertyName("localised_name")]
-    public string LocalisedName { get; set; }
+    public JsonElement LocalisedName { get; set; }
 
     [JsonPropertyName("type")]
     public string Type { get; set; }
@@ -151,8 +151,10 @@ public class FactorioMachine
     [JsonPropertyName("ingredient_count")]
     public int IngredientCount { get; set; }
 
+    [JsonConverter(typeof(EmptyObjectToListConverter<string>))]
     [JsonPropertyName("crafting_categories")]
-    public List<string> CraftingCategories { get; set; }
+    public List<string> CraftingCategories { get; set; } = new();
+
 
     [JsonPropertyName("pollution")]
     public double Pollution { get; set; }
@@ -191,10 +193,10 @@ public class FactorioTechnology
     public string Name { get; set; }
 
     [JsonPropertyName("localised_name")]
-    public string LocalisedName { get; set; }
+    public JsonElement LocalisedName { get; set; }
 
     [JsonPropertyName("localised_description")]
-    public string LocalisedDescription { get; set; }
+    public JsonElement LocalisedDescription { get; set; }
 
     [JsonPropertyName("enabled")]
     public bool Enabled { get; set; }
@@ -205,11 +207,13 @@ public class FactorioTechnology
     [JsonPropertyName("upgrade")]
     public bool Upgrade { get; set; }
 
+    [JsonConverter(typeof(EmptyObjectToListConverter<string>))]
     [JsonPropertyName("prerequisites")]
-    public List<string> Prerequisites { get; set; }
+    public List<string> Prerequisites { get; set; } = new();
 
+    [JsonConverter(typeof(EmptyObjectToListConverter<TechnologyEffect>))]
     [JsonPropertyName("effects")]
-    public List<TechnologyEffect> Effects { get; set; }
+    public List<TechnologyEffect> Effects { get; set; } = new();
 
     [JsonPropertyName("order")]
     public string Order { get; set; }
@@ -225,4 +229,29 @@ public class IconPathMap
 
     [JsonPropertyName("recipes")]
     public Dictionary<string, string> Recipes { get; set; }
+}
+
+public class EmptyObjectToListConverter<T> : JsonConverter<List<T>>
+{
+    public override List<T> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.StartObject)
+        {
+            // Пропускаем пустой объект {}
+            reader.Skip();
+            return new List<T>();
+        }
+
+        if (reader.TokenType == JsonTokenType.StartArray)
+        {
+            return JsonSerializer.Deserialize<List<T>>(ref reader, options);
+        }
+
+        throw new JsonException($"Unexpected token type: {reader.TokenType}");
+    }
+
+    public override void Write(Utf8JsonWriter writer, List<T> value, JsonSerializerOptions options)
+    {
+        JsonSerializer.Serialize(writer, value, options);
+    }
 }

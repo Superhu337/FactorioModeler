@@ -101,6 +101,7 @@
     <Compile Include="FCTORIOOUTPUT\DataCollector.cs" />
     <Compile Include="FCTORIOOUTPUT\FactorioIconExtractor.cs" />
     <Compile Include="FCTORIOOUTPUT\Models\FactorioData.cs" />
+    <Compile Include="FCTORIOOUTPUT\SearchFunc.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -125,11 +126,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="FACTORIOMOD\factorio-exporter_1.0.0\control.lua" />
-    <None Include="FACTORIOMOD\factorio-exporter_1.0.0\data.lua" />
-    <None Include="FACTORIOMOD\factorio-exporter_1.0.0\info.json" />
-    <None Include="FACTORIOMOD\factorio-exporter_1.0.0\json.lua" />
-    <None Include="FACTORIOMOD\mod-list.json" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
