@@ -44,7 +44,41 @@ namespace FactorioModeler.FACTORIOOUTPUT
             {
                 // Windows Steam
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
-                    "Steam", "steamapps", "common", "Factorio", "data"),
+                    "Steam", "steamapps", "common", "Factorio"),
+            
+                // Windows GOG
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                    "GOG Games", "Factorio", "data"),
+            
+                // Linux Steam
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                    ".steam", "steam", "steamapps", "common", "Factorio", "data"),
+            
+                // macOS Steam
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                    "Library", "Application Support", "Steam", "steamapps", "common", "Factorio", "data")
+            };
+
+            foreach (var path in possiblePaths)
+            {
+                if (Directory.Exists(path))
+                {
+                    Console.WriteLine($"✓ Найден Factorio: {path}");
+                    return path;
+                }
+            }
+
+            throw new DirectoryNotFoundException(
+                "Не найена папка Factorio. Убедитесь, что Factorio установлен или укажите путь вручную.");
+        }
+
+        public static string FindFactorioExePath()
+        {
+            string[] possiblePaths = new[]
+            {
+                // Windows Steam
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+                    "Steam", "steamapps", "common", "Factorio", "bin", "x64"),
             
                 // Windows GOG
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),

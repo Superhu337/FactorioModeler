@@ -6,13 +6,19 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Windows.Controls;
+using System.Diagnostics;
+using System.Threading; 
 
 namespace FactorioModeler.FACTORIOOUTPUT
 {
     public class DataCollector
     {
-        public string PathToFactorio = FactorioIconExtractor.FindFactorioPath();    
-        string ExporterPath = "script-output\\exporter";
+        public string PathToFactorio = FactorioIconExtractor.FindFactorioPath();
+        public string PathToFactorioExe = FactorioIconExtractor.FindFactorioExePath() + "\\factorio.exe";
+        public string ExporterPath = "script-output\\exporter";
+        public string ModeSourse = "C:\\Users\\dima\\source\\repos\\FactorioModeler\\FactorioModeler\\FACTORIOMOD";
+        public string PathToMods = "C:\\Users\\dima\\AppData\\Roaming\\Factorio\\mods";
         private List<FactorioItem> _items;
         private List<FactorioRecipe> _recipes;
         private List<FactorioMachine> _machines;
@@ -32,8 +38,11 @@ namespace FactorioModeler.FACTORIOOUTPUT
         /// <summary>
         /// Загрузить все данные из директории
         /// </summary>
-        public void LoadAll(string dataDirectory)
+        public void LoadAll()
         {
+            string dataDirectory = PathToFactorio + ExporterPath;
+            Thread.Sleep(1000);
+
             LoadItems(Path.Combine(dataDirectory, "items.json"));
             LoadRecipes(Path.Combine(dataDirectory, "recipes.json"));
             LoadMachines(Path.Combine(dataDirectory, "machines.json"));
@@ -86,8 +95,9 @@ namespace FactorioModeler.FACTORIOOUTPUT
         /// </summary>
         public void LoadIconPaths(string filePath)
         {
-            string json = File.ReadAllText(filePath);
-            _iconPaths = JsonSerializer.Deserialize<IconPathMap>(json, _jsonOptions);
+            Console.WriteLine("not implemented");
+            //string json = File.ReadAllText(filePath);
+            //_iconPaths = JsonSerializer.Deserialize<IconPathMap>(json, _jsonOptions);
         }
 
         // ========================================================================
@@ -213,11 +223,12 @@ namespace FactorioModeler.FACTORIOOUTPUT
         }
 
         /// <summary>
-        /// Получить иконку предмета
+        /// Получить иконку предмета (NOT WORKING)
         /// </summary>
-        public string GetItemIcon(string itemName)
+        public void GetItemIcon(string itemName)
         {
-            return _iconPaths?.Items?.TryGetValue(itemName, out var path) == true ? path : null;
+            Console.WriteLine("not implemented");
+            //return _iconPaths?.Items?.TryGetValue(itemName, out var path) == true ? path : null;
         }
 
         /// <summary>
@@ -237,15 +248,145 @@ namespace FactorioModeler.FACTORIOOUTPUT
         public int GetMachineCount() => _machines?.Count ?? 0;
         public int GetTechnologyCount() => _technologies?.Count ?? 0;
 
-        public void PrintStatistics()
+        public string Statistics()
         {
-            Console.WriteLine("=== Factorio Data Statistics ===");
-            Console.WriteLine($"Items: {GetItemCount()}");
-            Console.WriteLine($"Recipes: {GetRecipeCount()}");
-            Console.WriteLine($"Machines: {GetMachineCount()}");
-            Console.WriteLine($"Technologies: {GetTechnologyCount()}");
+            string s = "" +
+                $"=== Factorio Data Statistics ===\n" +
+                $"Items: {GetItemCount()}\n" +
+                $"Recipes: {GetRecipeCount()}\n" +
+                $"Machines: {GetMachineCount()}\n" +
+                $"Technologies: {GetTechnologyCount()}";
+            return s;
         }
 
+        static void CopyModeToDirectory(string sourceDir, string destinationDir, bool recursive)
+        {
+            // Get information about the source directory
+            var dir = new DirectoryInfo(sourceDir);
+            var dirdist = new DirectoryInfo(destinationDir);
 
+            // Check if the source directory exists
+            if (!dir.Exists)
+                throw new DirectoryNotFoundException($"Source directory not found: {dir.FullName}");
+
+            var filesA = dir.GetFiles("*.*", SearchOption.AllDirectories).Select(f => f.Name);
+            var filesB = dirdist.GetFiles("*.*", SearchOption.AllDirectories).Select(f => f.Name);
+
+            foreach (var filesdir in filesA)
+            {
+                foreach (var filesdirsist in filesB)
+                    if (filesdir.Equals(filesdirsist))
+                    {
+                        return;
+                    }
+            }
+            // Cache directories before we start copying
+            DirectoryInfo[] dirs = dir.GetDirectories();
+
+            // Create the destination directory
+            Directory.CreateDirectory(destinationDir);
+
+            // Get the files in the source directory and copy to the destination directory
+            foreach (FileInfo file in dir.GetFiles())
+            {
+
+                string targetFilePath = Path.Combine(destinationDir, file.Name);
+                file.CopyTo(targetFilePath);
+            }
+
+            // If recursive and copying subdirectories, recursively call this method
+            if (recursive)
+            {
+                foreach (DirectoryInfo subDir in dirs)
+                {
+                    string newDestinationDir = Path.Combine(destinationDir, subDir.Name);
+                    CopyModeToDirectory(subDir.FullName, newDestinationDir, true);
+                }
+            }
+        }
+
+        public async void LaunchGame(string SaveName)
+        {
+            if (SaveName == "") //TODO implement
+            {
+                SaveName = "C:\\Users\\dima\\AppData\\Roaming\\Factorio\\saves\\ForScript.zip";
+            }
+            // "C:\Program Files (x86)\Steam\steamapps\common\Factorio\bin\x64\factorio.exe" --start-server "C:\Users\dima\AppData\Roaming\Factorio\saves\123.zip"
+            string argument = $"--start-server \"{SaveName}\"";
+
+            string targetLine = "Info ServerMultiplayerManager";
+
+            Process serverProcess = await StartServerAsWaitForLineAsync(PathToFactorioExe, SaveName, targetLine);
+
+            StopFactorioServer(serverProcess);
+
+        }
+        static async Task<Process> StartServerAsWaitForLineAsync(string pathToExe, string SaveName, string targetLine)
+        {
+            var tcs = new TaskCompletionSource<Process>();
+
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = pathToExe.Trim('"'),
+                Arguments = $"{SaveName}",
+                RedirectStandardOutput = true, // Разрешаем перехват вывода
+                RedirectStandardError = true,  // Разрешаем перехват ошибок
+                UseShellExecute = false,       // Обязательно для перенаправления потоков
+                CreateNoWindow = true,         // Не открывать черное окно консоли cmd
+                StandardOutputEncoding = System.Text.Encoding.GetEncoding(866) // Исправляет кракозябры (кириллицу) в Windows
+            };
+
+            Process process = new Process { StartInfo = startInfo };
+
+            process.OutputDataReceived += (sender, e) =>
+            {
+                if (string.IsNullOrEmpty(e.Data)) return;
+
+                // Выводим логи в консоль, чтобы видеть что происходит
+                Console.WriteLine($"[Factorio]: {e.Data}");
+
+                // Если нашли нужную строку и задача еще не была завершена
+                if (e.Data.Contains(targetLine, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Разрешаем await в методе Main идти дальше и возвращаем объект процесса
+                    tcs.TrySetResult(process);
+                }
+            };
+
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            // Возвращаем Task. Выполнение Main заморозится на этой строчке, пока не сработает tcs.TrySetResult()
+            return await tcs.Task;
+        }
+        static void StopFactorioServer(Process serverProcess)
+        {
+            if (serverProcess != null && !serverProcess.HasExited)
+            {
+                Console.WriteLine("Останавливаем сервер...");
+                serverProcess.Kill();
+                serverProcess.WaitForExit();
+                serverProcess.Dispose();
+                Console.WriteLine("Сервер успешно остановлен.");
+            }
+        }
+
+        public string StartDataColletctor()
+        {
+
+            string SaveName = ""; //TODO ForScript => SaveName = "C:\\Users\\dima\\AppData\\Roaming\\Factorio\\saves\\ForScript.zip"
+
+            CopyModeToDirectory(ModeSourse, PathToMods, true);
+            LaunchGame(SaveName);
+            LoadAll();
+            var statistic = Statistics();
+            return statistic;
+        }
+
+        public DataCollector()
+        {
+            StartDataColletctor();
+        }
     }
 }

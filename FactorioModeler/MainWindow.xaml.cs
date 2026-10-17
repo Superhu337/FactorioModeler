@@ -12,17 +12,26 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using FactorioModeler.FACTORIOOUTPUT;
 
-namespace FactorioModelerr
+namespace FactorioModeler
 {
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
+        DataCollector data = new DataCollector();
+        public string GetStatistics
+        {
+            get => data.StartDataColletctor();
+            set => data.StartDataColletctor();
+        }
         public MainWindow()
         {
             InitializeComponent();
+            
+            this.DataContext = this;
         }
     }
 }
