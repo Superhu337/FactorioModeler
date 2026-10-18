@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 
-namespace FactorioModeler.FCTORIOOUTPUT
+namespace FactorioModeler.Scripts
 {
     public class SearchFunc
     {

@@ -1,17 +1,78 @@
-﻿<Window x:Class="FactorioModeler.MainWindow"
+﻿<Window x:Class="FactorioModeler.MainWindow" 
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FactorioModeler"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Width="1920" Height="1080"
+        Background="#101214"
+        WindowState="Maximized"
+        WindowStyle="None"
+        xmlns:Views="clr-namespace:FactorioModeler.Views" 
+        MouseRightButtonDown="Window_MouseRightButtonDown">
 
-    <Grid Margin="20">
-        <TextBlock Text="{Binding GetStatistics}" 
-                   FontSize="18" 
-                   TextWrapping="Wrap"
-                   HorizontalAlignment="Left" 
-                   VerticalAlignment="Top"/>
-    </Grid>
+
+
+
+    <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Margin="20">
+        <!-- Кнопка вызова меню (бургер) -->
+        <Button x:Name="MenuButton" 
+            Width="Auto" 
+            Height="Auto" 
+            Cursor="Hand"
+            Click="MenuButton_Click"
+            Background="Transparent"
+            BorderThickness="0">
+            <Rectangle Width="32" Height="32" Fill="#f8f8f8">
+                <Rectangle.OpacityMask>
+                    <ImageBrush ImageSource="/ui_icons/menu.png"/>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+
+            <Button.Style>
+                <Style TargetType="Button">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Button">
+                                <!-- Чистый контейнер без системных эффектов -->
+                                <Border x:Name="btnBorder" Background="Transparent" SnapsToDevicePixels="True">
+                                    <!-- Сюда прокидывается картинка меню -->
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <!-- Эффект при наведении (опционально: делаем иконку чуть прозрачнее или оставляем как есть) -->
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="btnBorder" Property="Background" Value="Transparent"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Button.Style>
+
+        </Button>
+
+        <!-- ИСПОЛЬЗУЕМ POPUP ВМЕСТО CONTEXTMENU -->
+        <!-- Свойство Placement="Bottom" вешает его под кнопку, а HorizontalOffset сдвигает, чтобы меню выровнялось по правому краю -->
+        <Popup x:Name="ButtonMenuPopup" 
+           PlacementTarget="{Binding ElementName=MenuButton}" 
+           Placement="Bottom" 
+           AllowsTransparency="True" 
+           PopupAnimation="Fade"
+           HorizontalOffset="0" 
+           VerticalOffset="10"
+           StaysOpen="False">
+           <!-- Закроется, если кликнуть мимо -->
+
+            
+            
+            
+            <Views:MenuOnTheRight />
+        </Popup>
+    </StackPanel>
+
+
+
 </Window>

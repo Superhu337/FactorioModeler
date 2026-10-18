@@ -90,6 +90,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Views\MenuOnTheRight.xaml.cs">
+      <DependentUpon>MenuOnTheRight.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SearchPopUp.xaml.cs">
+      <DependentUpon>SearchPopUp.xaml</DependentUpon>
+    </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -98,17 +104,25 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FCTORIOOUTPUT\DataCollector.cs" />
-    <Compile Include="FCTORIOOUTPUT\FactorioIconExtractor.cs" />
-    <Compile Include="FCTORIOOUTPUT\Models\FactorioData.cs" />
-    <Compile Include="FCTORIOOUTPUT\SearchFunc.cs" />
+    <Compile Include="Scripts\DataCollector.cs" />
+    <Compile Include="Scripts\FactorioIconExtractor.cs" />
+    <Compile Include="Models\FactorioData.cs" />
+    <Compile Include="Scripts\SearchFunc.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Views\MenuOnTheRight.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SearchPopUp.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PathExtensions.cs" />
+    <Compile Include="Scripts\PathExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -134,6 +148,56 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="ui_icons\about.png" />
+    <Resource Include="ui_icons\add.png" />
+    <Resource Include="ui_icons\align.png" />
+    <Resource Include="ui_icons\apply.png" />
+    <Resource Include="ui_icons\back.png" />
+    <Resource Include="ui_icons\clear.png" />
+    <Resource Include="ui_icons\clockspeed.png" />
+    <Resource Include="ui_icons\copy.png" />
+    <Resource Include="ui_icons\cut.png" />
+    <Resource Include="ui_icons\dark.png" />
+    <Resource Include="ui_icons\delete.png" />
+    <Resource Include="ui_icons\disconnect.png" />
+    <Resource Include="ui_icons\down.png" />
+    <Resource Include="ui_icons\export.png" />
+    <Resource Include="ui_icons\help.png" />
+    <Resource Include="ui_icons\import.png" />
+    <Resource Include="ui_icons\language.png" />
+    <Resource Include="ui_icons\light.png" />
+    <Resource Include="ui_icons\limit.png" />
+    <Resource Include="ui_icons\link.png" />
+    <Resource Include="ui_icons\machine.png" />
+    <Resource Include="ui_icons\menu.png" />
+    <Resource Include="ui_icons\minus.png" />
+    <Resource Include="ui_icons\numbers.png" />
+    <Resource Include="ui_icons\off.png" />
+    <Resource Include="ui_icons\on.png" />
+    <Resource Include="ui_icons\open.png" />
+    <Resource Include="ui_icons\paste.png" />
+    <Resource Include="ui_icons\popout.png" />
+    <Resource Include="ui_icons\redo.png" />
+    <Resource Include="ui_icons\saves.png" />
+    <Resource Include="ui_icons\scale.png" />
+    <Resource Include="ui_icons\search.png" />
+    <Resource Include="ui_icons\settings.png" />
+    <Resource Include="ui_icons\somersloop.png" />
+    <Resource Include="ui_icons\spinner.gif" />
+    <Resource Include="ui_icons\style.png" />
+    <Resource Include="ui_icons\summary.png" />
+    <Resource Include="ui_icons\title.png" />
+    <Resource Include="ui_icons\undo.png" />
+    <Resource Include="ui_icons\waypoints.png" />
+    <Resource Include="ui_icons\window.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="ui_icons\update.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="ui_icons\red-x-line.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\System.ValueTuple.4.6.2\build\net471\System.ValueTuple.targets" Condition="Exists('..\packages\System.ValueTuple.4.6.2\build\net471\System.ValueTuple.targets')" />

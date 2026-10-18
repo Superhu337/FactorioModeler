@@ -1,5 +1,4 @@
-﻿using FactorioModeler.FCTORIOOUTPUT;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -11,8 +10,9 @@ using System.Text.Json.Serialization;
 using System.Threading; 
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using FactorioModeler.Models;
 
-namespace FactorioModeler.FACTORIOOUTPUT
+namespace FactorioModeler.Scripts
 {
     public class DataCollector
     {
@@ -44,7 +44,7 @@ namespace FactorioModeler.FACTORIOOUTPUT
         public void LoadAll()
         {
             string dataDirectory = ExporterPath;
-            Thread.Sleep(5000);
+            //Thread.Sleep(5000);
 
             LoadItems(Path.Combine(dataDirectory, "items.json"));
             LoadRecipes(Path.Combine(dataDirectory, "recipes.json"));

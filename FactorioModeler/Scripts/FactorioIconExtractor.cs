@@ -13,7 +13,7 @@ using System.IO;
 /// Извлекает и копирует иконки предметов и рецептов из Factorio
 /// </summary>
 
-namespace FactorioModeler.FACTORIOOUTPUT
+namespace FactorioModeler.Scripts
 {
     public class FactorioIconExtractor
     {
