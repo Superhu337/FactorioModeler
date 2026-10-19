@@ -369,8 +369,12 @@ namespace FactorioModeler.Scripts
             Console.WriteLine("Сервер успешно остановлен.");
 
         }
-
-        public string StartDataColletctor()
+        public string GetStatistic()
+        {
+            var statistic = Statistics();
+            return statistic;
+        }
+        public void StartDataColletctor()
         {
 
             string SaveName = ""; //TODO ForScript => SaveName = "C:\\Users\\dima\\AppData\\Roaming\\Factorio\\saves\\ForScript.zip"
@@ -378,8 +382,6 @@ namespace FactorioModeler.Scripts
             CopyModeToDirectory(ModeSourse, PathToMods, true);
             LaunchGame(SaveName);
             LoadAll();
-            var statistic = Statistics();
-            return statistic;
         }
     }
 }

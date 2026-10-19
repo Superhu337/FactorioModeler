@@ -9,7 +9,9 @@
         Background="Transparent"
         WindowStyle="None"
         AllowsTransparency="True"
-        ResizeMode="NoResize">
+        ResizeMode="NoResize"
+        KeyDown="Window_KeyDown"
+        Deactivated="Window_Deactivated">
 
     <Window.Resources>
         <!-- СТИЛЬ ДЛЯ ПЕРЕКЛЮЧАТЕЛЕЙ (Recipe Name, Inputs, Outputs) -->
@@ -110,12 +112,14 @@
 
                     <!-- Поле ввода текста -->
                     <TextBox Grid.Column="1"
-                                 Background="Transparent" 
-                                 BorderThickness="0" 
-                                 Foreground="#f8f8f8" 
-                                 FontSize="16" 
-                                 VerticalContentAlignment="Center" 
-                                 CaretBrush="#f8f8f8" Height="36"/>
+                                Background="Transparent" 
+                                BorderThickness="0" 
+                                Foreground="#f8f8f8" 
+                                FontSize="16" 
+                                VerticalContentAlignment="Center" 
+                                CaretBrush="#f8f8f8" Height="36"
+                                x:Name="SearchTextBox" 
+                                TextChanged="SearchTextBox_TextChanged" />
 
                     <!-- Кнопка отчистки поиска -->
                     <Button Grid.Column="2" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="ClearButton_Click" Width="40">
@@ -131,23 +135,25 @@
 
             <!-- 2. СРЕДНЯЯ ПАНЕЛЬ: Переключатели фильтрации -->
             <UniformGrid Grid.Row="1" Columns="3" Margin="0,8,0,8">
-                <ToggleButton Content="Recipe Name" Style="{StaticResource FactorioToggle}" HorizontalAlignment="Center" IsChecked="True"/>
-                <ToggleButton Content="Inputs" Style="{StaticResource FactorioToggle}" HorizontalAlignment="Center"/>
-                <ToggleButton Content="Outputs" Style="{StaticResource FactorioToggle}" HorizontalAlignment="Center"/>
+                <ToggleButton x:Name="ToggleRecipeName" Content="Recipe Name" Style="{StaticResource FactorioToggle}" HorizontalAlignment="Center" IsChecked="True" Checked="SearchSettings_Changed" Unchecked="SearchSettings_Changed"/>
+                <ToggleButton x:Name="ToggleInputs" Content="Inputs" Style="{StaticResource FactorioToggle}" HorizontalAlignment="Center" Checked="SearchSettings_Changed" Unchecked="SearchSettings_Changed"/>
+                <ToggleButton x:Name="ToggleOutputs" Content="Outputs" Style="{StaticResource FactorioToggle}" HorizontalAlignment="Center" Checked="SearchSettings_Changed" Unchecked="SearchSettings_Changed"/>
             </UniformGrid>
 
             <!-- 3. НИЖНЯЯ ПАНЕЛЬ: Результаты (Скроллбар появится автоматически) -->
-            <ListBox Grid.Row="2" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                <!-- Временные пустые элементы для демонстрации дизайна, как на картинке -->
-                <ListBoxItem/>
-                <ListBoxItem/>
-                <ListBoxItem/>
-                <ListBoxItem/>
-                <ListBoxItem/>
-                <ListBoxItem/>
-                <ListBoxItem/>
-                <ListBoxItem/>
-                <ListBoxItem/>
+            <ListBox x:Name="ResultsListBox" 
+                     Grid.Row="2" 
+                     Background="Transparent" 
+                     BorderThickness="0" 
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="5">
+                            <TextBlock Text="{Binding Name}" Foreground="#f8f8f8" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding Category}" Foreground="#a0a0a0" FontSize="11"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
             </ListBox>
         </Grid>
     </Border>

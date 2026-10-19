@@ -39,7 +39,7 @@ namespace FactorioModeler
             InitializeComponent();
             this.DataContext = this;
 
-            //GetStatistics = data.StartDataColletctor();
+            data.StartDataColletctor();
             //Console.WriteLine(GetStatistics);
 
 
@@ -62,17 +62,37 @@ namespace FactorioModeler
             // 2. ПРОВЕРКА: Если окно еще не создано ИЛИ оно было закрыто пользователем
             if (activeSearchWindow == null || !activeSearchWindow.IsLoaded)
             {
-                activeSearchWindow = new SearchPopUp();
+                activeSearchWindow = new SearchPopUp(data);
                 activeSearchWindow.Owner = this;
             }
 
-            // 3. Позиционируем окно точно по курсору мыши
-            activeSearchWindow.Left = screenPosition.X;
-            activeSearchWindow.Top = screenPosition.Y;
+            // --- ЛОГИКА УДЕРЖАНИЯ В ГРАНИЦАХ ЭКРАНА ---
+            // Получаем рабочую область экрана (без панели задач)
+            Rect workArea = SystemParameters.WorkArea;
 
-            // 4. Показываем окно и выводим на передний план (активируем)
+            double x = screenPosition.X;
+            double y = screenPosition.Y;
+
+            // Если окно выходит за правую границу
+            if (x + activeSearchWindow.Width > workArea.Right)
+                x = workArea.Right - activeSearchWindow.Width;
+
+            // Если окно выходит за нижнюю границу
+            if (y + activeSearchWindow.Height > workArea.Bottom)
+                y = workArea.Bottom - activeSearchWindow.Height;
+
+            // Если окно выходит за левую или верхнюю границу
+            if (x < workArea.Left) x = workArea.Left;
+            if (y < workArea.Top) y = workArea.Top;
+
+            // Устанавливаем безопасные координаты
+            activeSearchWindow.Left = x;
+            activeSearchWindow.Top = y;
+
+            // Показываем окно и выводим на передний план
             activeSearchWindow.Show();
             activeSearchWindow.Activate();
+            activeSearchWindow.FocusSearchBox();
 
             e.Handled = true;
         }
