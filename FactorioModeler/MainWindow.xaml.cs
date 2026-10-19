@@ -15,9 +15,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+
 /*
  *     <!-- #2f2f2f color under 
-    #606060 colo up 
+    #606060 color up 
     #ffafaf input 
     #95f6a8 output 
     #a0a0a0 line 
@@ -33,6 +34,7 @@ namespace FactorioModeler
     {
         private SearchPopUp activeSearchWindow = null;
         DataCollector data = new DataCollector();
+        RecipeCard Card = new RecipeCard();
         public string GetStatistics { get; set; }
         public MainWindow()
         {
@@ -42,6 +44,8 @@ namespace FactorioModeler
             data.StartDataColletctor();
             //Console.WriteLine(GetStatistics);
 
+            Card.SpawnCard(3, 3);
+            Card.Show();
 
         }
 

@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using FactorioModeler.Models;
 
+
 namespace FactorioModeler.Scripts
 {
     public class DataCollector
@@ -308,66 +309,97 @@ namespace FactorioModeler.Scripts
             }
         }
 
-        public async void LaunchGame(string SaveName)
-        {
-            if (SaveName == "") //TODO implement
-            {
-                SaveName = SearchFunc.FindFactorioSave() + "\\ForScript.zip";//"C:\\Users\\dima\\AppData\\Roaming\\Factorio\\saves\\ForScript.zip"
-            }
-            // "C:\Program Files (x86)\Steam\steamapps\common\Factorio\bin\x64\factorio.exe" --start-server "C:\Users\dima\AppData\Roaming\Factorio\saves\123.zip"
-            string argument = $"--start-server \"{SaveName}\"";
+        // ========================================================================
+        // БАГ #2: LaunchGame() — async void вместо async Task
+        // ========================================================================
 
+        /// <summary>
+        /// ИСПРАВЛЕННАЯ ВЕРСИЯ: Правильное использование async Task
+        /// </summary>
+        public async System.Threading.Tasks.Task LaunchGame(string saveName = "")
+        {
+            if (saveName == "")
+            {
+                saveName = SearchFunc.FindFactorioSave() + "\\ForScript.zip";
+            }
+
+            string argument = $"--start-server \"{saveName}\"";
             string targetLine = "changing state from(CreatingGame) to(InGame)";
 
-            StartServerAsWaitForLineAsync(PathToFactorioExe, argument, targetLine);
-
-            
-
+            await StartServerAndWaitForLineAsync(PathToFactorioExe, argument, targetLine);
         }
-        static void StartServerAsWaitForLineAsync(string pathToExe, string argument, string targetLine)
-        {
 
-            ProcessStartInfo startInfo = new ProcessStartInfo
+        /// <summary>
+        /// Асинхронное ожидание строки в консоли Factorio
+        /// </summary>
+        private async System.Threading.Tasks.Task StartServerAndWaitForLineAsync(
+            string pathToExe, string argument, string targetLine)
+        {
+            var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
+
+            var startInfo = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = pathToExe.Trim('"'),
-                Arguments = $"{argument}",
-                RedirectStandardOutput = true, // Разрешаем перехват вывода
-                //RedirectStandardError = true,  // Разрешаем перехват ошибок
-                UseShellExecute = false,       // Обязательно для перенаправления потоков
-                CreateNoWindow = true,         // Не открывать черное окно консоли cmd
-                StandardOutputEncoding = System.Text.Encoding.GetEncoding(866) // Исправляет кракозябры (кириллицу) в Windows
+                Arguments = argument,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                StandardOutputEncoding = System.Text.Encoding.GetEncoding(866)
             };
 
-            Process process = new Process { StartInfo = startInfo };
+            var process = new System.Diagnostics.Process { StartInfo = startInfo };
 
             process.OutputDataReceived += (sender, e) =>
             {
                 if (string.IsNullOrEmpty(e.Data)) return;
 
-                // Выводим логи в консоль, чтобы видеть что происходит
                 Console.WriteLine($"[Factorio]: {e.Data}");
 
-                // Если нашли нужную строку и задача еще не была завершена
                 if (e.Data.Contains(targetLine, StringComparison.OrdinalIgnoreCase))
                 {
+                    Console.WriteLine("✓ Сервер инициализирован, останавливаем...");
                     StopFactorioServer(process);
+                    tcs.SetResult(true);
                 }
             };
 
             process.Start();
             process.BeginOutputReadLine();
-            //process.BeginErrorReadLine();
-            
-            }
+
+            // Ждём завершения
+            await tcs.Task.ConfigureAwait(false);
+        }
+
         static void StopFactorioServer(Process serverProcess)
         {
+            try
+            {
+                Console.WriteLine("Останавливаем сервер...");
+                serverProcess.Kill();
 
-            Console.WriteLine("Останавливаем сервер...");
-            serverProcess.Kill();
-            serverProcess.WaitForExit();
-            serverProcess.Dispose();
-            Console.WriteLine("Сервер успешно остановлен.");
+                // Ждём максимум 5 секунд
+                for (int i = 0; i < 50; i++)
+                {
+                    if (serverProcess.HasExited)
+                    {
+                        Console.WriteLine("Сервер успешно остановлен.");
+                        break;
+                    }
+                    System.Threading.Thread.Sleep(100);
+                }
 
+                if (!serverProcess.HasExited)
+                {
+                    Console.WriteLine("⚠ Процесс не завершился в срок, форсируем...");
+                    serverProcess.Kill();
+                }
+
+                serverProcess.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠ Ошибка: {ex.Message}");
+            }
         }
         public string GetStatistic()
         {
