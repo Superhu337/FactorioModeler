@@ -23,7 +23,7 @@ namespace FactorioModeler.Views
     /// 
     public partial class RecipeCard : Window
     {
-        private const string DEFAULT_ICON_PATH = "/ui_icons/mining-default.png";
+        private const string DEFAULT_ICON_PATH = "/ui_icons/factory-default.png";
         private const string DEFAULT_INPUT_PATH = "/ui_icons/input-default.png";
         private const string DEFAULT_OUTPUT_PATH = "/ui_icons/output-default.png";
 

@@ -37,7 +37,7 @@
         <!-- ПРОЦЕСС (в центре) -->
         <Border x:Name="ProcessBorder" Grid.Column="1" Background="#606060" VerticalAlignment="Top" Margin="0,3,0,0">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <Image x:Name="ProcessIcon" Source="/ui_icons/mining-default.png" 
+                <Image x:Name="ProcessIcon" Source="/ui_icons/factory-default.png" 
                         Width="58" Height="58"/>
             </StackPanel>
         </Border>
