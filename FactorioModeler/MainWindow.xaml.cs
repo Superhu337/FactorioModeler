@@ -44,7 +44,7 @@ namespace FactorioModeler
             data.StartDataColletctor();
             //Console.WriteLine(GetStatistics);
 
-            Card.SpawnCard(3, 3);
+            Card.SpawnCard(1, 1);
             Card.Show();
 
         }

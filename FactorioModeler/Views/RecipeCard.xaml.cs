@@ -120,7 +120,13 @@ namespace FactorioModeler.Views
             }
         }
 
-
+        private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                this.DragMove(); // Запускает встроенный механизм перетаскивания окна
+            }
+        }
         /// <summary>
         /// Изменить размер карточки в зависимости от количества входов/выходов
         /// </summary>

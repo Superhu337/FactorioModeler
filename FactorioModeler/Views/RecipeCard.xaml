@@ -11,7 +11,7 @@
         ShowInTaskbar="False"
         AllowsTransparency="True">
 
-    <Grid x:Name="MainGrid" >
+    <Grid x:Name="MainGrid" MouseLeftButtonDown="Header_MouseLeftButtonDown">
         <Grid.RowDefinitions>
             <RowDefinition x:Name="MainRow"/>
             <RowDefinition Height="27" />
