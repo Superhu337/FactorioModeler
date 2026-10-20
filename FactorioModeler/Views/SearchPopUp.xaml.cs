@@ -55,7 +55,7 @@ namespace FactorioModeler.Views
 
         private void Window_Deactivated(object sender, EventArgs e)
         {
-            ClosePopup();
+            this.Hide();
         }
 
         private void ClosePopup()
@@ -66,7 +66,25 @@ namespace FactorioModeler.Views
                 this.Close();
             }
         }
+        private void ResultsListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            SpawnSelectedRecipe();
+        }
 
+        private void ResultsListBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter) SpawnSelectedRecipe();
+        }
+
+        private void SpawnSelectedRecipe()
+        {
+            if (ResultsListBox.SelectedItem is FactorioRecipe recipe &&
+                Owner is MainWindow mw)
+            {
+                mw.CreateRecipeCard(recipe);
+                ClosePopup();  // необязательно: можно оставить поиск открытым
+            }
+        }
 
         public void FocusSearchBox()
         {

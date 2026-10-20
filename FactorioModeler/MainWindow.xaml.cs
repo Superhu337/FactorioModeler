@@ -34,7 +34,7 @@ namespace FactorioModeler
     {
         private SearchPopUp activeSearchWindow = null;
         DataCollector data = new DataCollector();
-        RecipeCard Card = new RecipeCard();
+        private RecipeCard Card = new RecipeCard();
         public string GetStatistics { get; set; }
         public MainWindow()
         {
@@ -44,14 +44,29 @@ namespace FactorioModeler
             data.StartDataColletctor();
             //Console.WriteLine(GetStatistics);
 
-            Card.SpawnCard(1, 1);
-            Card.Show();
-
         }
+
+
 
         private void MenuButton_Click(object sender, RoutedEventArgs e)
         {
             ButtonMenuPopup.IsOpen = !ButtonMenuPopup.IsOpen;
+        }
+
+        public void CreateRecipeCard(FactorioRecipe recipe)
+        {
+            if (recipe == null) return;
+
+            var card = new RecipeCard();
+            card.Owner = this;              // MainWindow уже показан — ок
+            card.SpawnCard(recipe, data);   // data — то же поле, что уже есть
+
+            // Позиция: у курсора, с небольшим отступом
+            Point screenPos = PointToScreen(Mouse.GetPosition(this));
+            card.Left = screenPos.X + 10;
+            card.Top = screenPos.Y + 10;
+
+            card.Show();
         }
 
         // Обработчик нажатия ПКМ в любом месте экрана

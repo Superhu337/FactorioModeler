@@ -143,10 +143,12 @@
 
             <!-- 3. НИЖНЯЯ ПАНЕЛЬ: Результаты (Скроллбар появится автоматически) -->
             <ListBox x:Name="ResultsListBox" 
-                     Grid.Row="2" 
-                     Background="Transparent" 
-                     BorderThickness="0" 
-                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    Grid.Row="2" 
+                    Background="Transparent" 
+                    BorderThickness="0" 
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                    MouseDoubleClick="ResultsListBox_MouseDoubleClick"
+                    KeyDown="ResultsListBox_KeyDown">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Margin="5">

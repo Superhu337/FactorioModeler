@@ -10,7 +10,8 @@
         WindowState="Maximized"
         WindowStyle="None"
         xmlns:Views="clr-namespace:FactorioModeler.Views" 
-        MouseRightButtonDown="Window_MouseRightButtonDown">
+        MouseRightButtonDown="Window_MouseRightButtonDown"
+        >
 
 
 
