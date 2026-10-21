@@ -412,7 +412,7 @@ namespace FactorioModeler.Scripts
             string SaveName = ""; //TODO ForScript => SaveName = "C:\\Users\\dima\\AppData\\Roaming\\Factorio\\saves\\ForScript.zip"
 
             CopyModeToDirectory(ModeSourse, PathToMods, true);
-            LaunchGame(SaveName);
+            //LaunchGame(SaveName);
             LoadAll();
         }
     }

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace FactorioModeler.Models
 {
+
     public class FactorioItem
     {
         [JsonPropertyName("name")]
@@ -126,6 +127,8 @@ namespace FactorioModeler.Models
 
         [JsonPropertyName("subgroup")]
         public string Subgroup { get; set; }
+
+        
 
         /// <summary>
         /// Получить выход продуктов в секунду

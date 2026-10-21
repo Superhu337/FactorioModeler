@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:FactorioModeler.Views"
         mc:Ignorable="d"
         WindowStyle="None"
+        x:Name="m"
         Width="242" Height="Auto" d:HorizontalAlignment="Center" d:VerticalAlignment="Center"
         Background="Transparent"
         ShowInTaskbar="False"
@@ -14,47 +15,49 @@
 
     <Grid x:Name="MainGrid" MouseLeftButtonDown="Header_MouseLeftButtonDown" Background="Transparent">
         <Grid.RowDefinitions>
-            <RowDefinition x:Name="MainRow" Height="88"/>
+            <RowDefinition x:Name="MainRow" />
             <RowDefinition Height="27" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="81" />
+            <ColumnDefinition Width="46" />
+            <ColumnDefinition Width="35" />
 
-            <ColumnDefinition Width="78" />
+            <ColumnDefinition Width="*" />
 
-            <ColumnDefinition Width="81" />
+            <ColumnDefinition Width="35" />
+            <ColumnDefinition Width="46" />
         </Grid.ColumnDefinitions>
 
-        <Border x:Name="MainBorder" BorderBrush="#a0a0a0" BorderThickness="3" Background="#606060" Grid.RowSpan="2" Grid.ColumnSpan="3" Margin="46,0,46,0" />
+        <Border x:Name="MainBorder" BorderBrush="#a0a0a0" BorderThickness="3" Background="#606060" Grid.RowSpan="2" Grid.ColumnSpan="3" Grid.Column="1"/>
 
+        
+        <StackPanel x:Name="InputsNumbers" Grid.Column="0" Margin="3,0,0,0">
+        </StackPanel>
 
         <!-- ВХОДЫ (слева) -->
-        <StackPanel x:Name="InputsPanel" Grid.Column="0" Margin="49,3,0,0">
-            <!-- Иконки входов будут добавлены программно -->
-            
+        <StackPanel x:Name="InputsPanel" Grid.Column="1" Margin="3,3,0,0">
         </StackPanel>
-        <TextBlock x:Name="Input" Text="0" FontSize="14" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#f8f8f8" Margin="0,11,0,0"/>
+
         <!-- ПРОЦЕСС (в центре) -->
-        <Border x:Name="ProcessBorder" Grid.Column="1" Background="#606060" VerticalAlignment="Top" Margin="0,3,0,0">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Border x:Name="ProcessBorder" Grid.Column="2" Background="#606060" VerticalAlignment="Top" Margin="0,3,0,0">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" >
                 <Image x:Name="ProcessIcon" Source="/ui_icons/factory-default.png" 
                         Width="58" Height="58"/>
             </StackPanel>
         </Border>
 
         <!-- ВЫХОДЫ (справа) -->
-        <StackPanel x:Name="OutputsPanel" Grid.Column="3" Margin="0,3,49,0">
+        <StackPanel x:Name="OutputsPanel" Grid.Column="3" Margin="0,3,3,0">
             <!-- Иконки выходов будут добавлены программно -->
-            <TextBlock x:Name="Output" Text="output" FontSize="14" HorizontalAlignment="Right" VerticalAlignment="Top" Foreground="#f8f8f8" Grid.Column="3" Margin="0,11,0,0"/>
-
         </StackPanel>
 
+        <StackPanel x:Name="OutputsNumbers" Grid.Column="4">
+        </StackPanel>
 
-
-        <TextBlock x:Name="Cur_Out" Text="Cur OUT" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="16" Foreground="#f8f8f8" Grid.Column="1" Grid.Row="0"/>
+        <TextBlock x:Name="Cur_Out" Text="Cur OUT" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="16" Foreground="#f8f8f8" Grid.Column="2" Grid.Row="0"/>
        
 
-        <Border Background="#2f2f2f" Grid.Row="1" Grid.ColumnSpan="3" Margin="49,0,49,3">
+        <Border Background="#2f2f2f" Grid.Row="1" Grid.ColumnSpan="3" Grid.Column="1" Margin="3,0,3,3">
             <TextBlock x:Name="Limit" Text="Limit" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#f8f8f8"/>
         </Border>
     </Grid>

@@ -1,6 +1,7 @@
 ﻿using FactorioModeler.Models;
 using FactorioModeler.Scripts;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -54,133 +55,94 @@ namespace FactorioModeler.Views
             string iconPath = data?.GetRecipeIcon(recipe.Name);
             ProcessIcon.Source = LoadImage(iconPath ?? DEFAULT_ICON_PATH);
 
-            CreateInputs(recipe.Ingredients);
-            CreateOutputs(recipe.Products);
+            // ВЫЗОВ ДЛЯ ВХОДОВ (Розовый фон, иконка входа)
+            CreateInputsOutputs(
+                recipe.Ingredients,
+                InputsPanel,
+                InputsNumbers,
+                Color.FromRgb(0xff, 0xaf, 0xaf),
+                DEFAULT_INPUT_PATH
+            );
+
+            // ВЫЗОВ ДЛЯ ВЫХОДОВ (Зеленый фон, иконка выхода)
+            CreateInputsOutputs(
+                recipe.Products,
+                OutputsPanel,
+                OutputsNumbers,
+                Color.FromRgb(0x95, 0xf6, 0xa8),
+                DEFAULT_OUTPUT_PATH
+            );
 
             ResizeCardBasedOnItems(
                 recipe.Ingredients?.Count ?? 0,
                 recipe.Products?.Count ?? 0);
         }
 
-        private void CreateInputs(List<RecipeIngredient> ingredients)
+        private void CreateInputsOutputs<T>(List<T> list, Panel targetpanel, Panel targetpanelNumbers, Color backgroundColor, string defaultImagePath)
         {
-            InputsPanel.Children.Clear();
-            InputsPanel.Width = ICON_SIZE_SINGLE;
-
-            if (ingredients == null || ingredients.Count == 0)
-            {
-                Input.Text = "0";
-                return;
-            }
+            targetpanel.Children.Clear();
+            targetpanelNumbers.Children.Clear();
+            targetpanel.Width = ICON_SIZE_SINGLE;
 
 
-            foreach (var ing in ingredients)
+
+            if (list == null || list.Count == 0) return;
+
+            foreach (dynamic item in list)
             {
 
-                var TextBlock = new TextBlock //<TextBlock x:Name="Output" Text="output" FontSize="14" HorizontalAlignment="Right" VerticalAlignment="Top" Foreground="#f8f8f8" Grid.Column="3" Margin="0,11,0,0"/>
+                var TextBlock = new TextBlock
                 {
-                    Text = "cdj",
+                    Text = item.Amount.ToString(),
                     VerticalAlignment = VerticalAlignment.Center,
-                    Margin = new Thickness(0, 0, 0, 0),
+                    //Margin = new Thickness(0, 0, 0, 0),
                     Foreground = new SolidColorBrush(Color.FromRgb(0xf8, 0xf8, 0xf8))
                 };
+                targetpanelNumbers.Children.Add(TextBlock);
 
                 var border = new Border
                 {
                     Width = ICON_SIZE_SINGLE,
                     Height = ICON_SIZE_SINGLE,
                     //Margin = new Thickness(10,0,0,0),
-                    Background = new SolidColorBrush(Color.FromRgb(0xff, 0xaf, 0xaf)),
-                    ToolTip = $"{ing.Amount}x {ing.Name}"    // наглядно
+                    Background = new SolidColorBrush(backgroundColor),
+                    ToolTip = $"{item.Amount}x {item.Name}"   // наглядно
                 };
 
                 var image = new Image
                 {
-                    Source = LoadImage(DEFAULT_INPUT_PATH),
+                    Source = LoadImage(defaultImagePath),
                     Width = ICON_SIZE_SINGLE,
                     Height = ICON_SIZE_SINGLE
                 };
 
                 border.Child = image;
-                InputsPanel.Children.Add(border);
+                targetpanel.Children.Add(border);
+
             }
         }
 
-        private void CreateOutputs(List<RecipeProduct> products)
-        {
-            OutputsPanel.Children.Clear();
-            OutputsPanel.Width = ICON_SIZE_SINGLE;
+        
+        //public void ChangeText(int a, TextBlock panel)
+        //{
+        //    List<string> list = [];
 
-            if (products == null || products.Count == 0)
-            {
-                Output.Text = "0";
-                return;
-            }
+        //    for (int i = 1; i <= a; i++)
+        //    {
+        //        list.Add(i.ToString());
+        //    }
 
-            ChangeTextOutputs(products.Count);
+        //    StringBuilder sb = new StringBuilder();
+        //    foreach (string item in list)
+        //    {
+        //        sb.AppendLine(item); // Добавляет элемент и перенос строки в конец
+        //    }
 
-            foreach (var p in products)
-            {
-                var border = new Border
-                {
-                    Width = ICON_SIZE_SINGLE,
-                    Height = ICON_SIZE_SINGLE,
-                    Background = new SolidColorBrush(Color.FromRgb(0x95, 0xf6, 0xa8)),
-                    ToolTip = $"{p.Amount}x {p.Name}"
-                };
+        //    string result = sb.ToString();
 
-                var image = new Image
-                {
-                    Source = LoadImage(DEFAULT_OUTPUT_PATH),
-                    Width = ICON_SIZE_SINGLE,
-                    Height = ICON_SIZE_SINGLE
-                };
-
-                border.Child = image;
-                OutputsPanel.Children.Add(border);
-            }
-        }
-
-        public void ChangeTextInputs(int a)
-        {
-            List<string> list = [];
-
-            for (int i = 1; i <= a; i++)
-            {
-                list.Add(i.ToString());
-            }
-
-            StringBuilder sb = new StringBuilder();
-            foreach (string item in list)
-            {
-                sb.AppendLine(item); // Добавляет элемент и перенос строки в конец
-            }
-
-            string result = sb.ToString();
-
-            Input.Text = result;
-        }
-        public void ChangeTextOutputs(int a)
-        {
-
-            List<string> list = [];
-
-            for (int i = 1; i <= a; i++)
-            {
-                list.Add(i.ToString());
-            }
-
-            StringBuilder sb = new StringBuilder();
-            foreach (string item in list)
-            {
-                sb.AppendLine(item); // Добавляет элемент и перенос строки в конец
-            }
-
-            string result = sb.ToString();
-
-            Output.Text = result;
-        }
-
+        //    panel.Text = result;
+        //}
+       
 
         private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -197,24 +159,24 @@ namespace FactorioModeler.Views
             int iconHeight = 32;
 
             // Вычисляем высоту, требуемую для иконок
-            int requiredHeight = Math.Max(inputCount, outputCount) * iconHeight;
+            int requiredHeight = 126;
 
             // Если входов/выходов 1, используем фиксированную высоту
-            if (inputCount <= 1 && outputCount <= 1)
+            if (inputCount <= 3 && outputCount <= 3)
             {
                 requiredHeight = 126;  // Стандартная высота
             }
             else
-            {
-                // Минимум 118, максимум для 6 элементов
-                requiredHeight = 126;//Math.Max(126, requiredHeight + BORDER_THICKNESS * 2 + 24);
+            {   
+                requiredHeight+= (Math.Max(inputCount, outputCount)-3) * iconHeight;
             }
-
+            //Console.WriteLine(requiredHeight);
+            //Console.WriteLine(inputCount);
             // Устанавливаем размеры окна
-            this.Height = requiredHeight;
+            m.Height = requiredHeight;
             //MainRow.Height = new GridLength(requiredHeight - 24 - BORDER_THICKNESS);
 
-            MainBorder.Height = requiredHeight - BORDER_THICKNESS;
+            MainBorder.Height = requiredHeight; //- BORDER_THICKNESS;
         }
 
     }
