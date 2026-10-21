@@ -22,7 +22,7 @@ namespace FactorioModeler.Views
     /// Логика взаимодействия для RecipeCard.xaml
     /// </summary>
     /// 
-    public partial class RecipeCard : Window
+    public partial class RecipeCard : UserControl
     {
         private const string DEFAULT_ICON_PATH = "/ui_icons/factory-default.png";
         private const string DEFAULT_INPUT_PATH = "/ui_icons/input-default.png";
@@ -33,7 +33,7 @@ namespace FactorioModeler.Views
         private const int ICON_SPACING = 3;    // Когда 2+ входов/выходов
         private const int BORDER_THICKNESS = 3;       // Толщина рамки
 
-
+        public event Action<RecipeCard, Point, string> IngredientClicked;
 
         public RecipeCard()
         {
@@ -125,70 +125,6 @@ namespace FactorioModeler.Views
             }
         }
 
-
-        //public void ChangeText(int a, TextBlock panel)
-        //{
-        //    List<string> list = [];
-
-        //    for (int i = 1; i <= a; i++)
-        //    {
-        //        list.Add(i.ToString());
-        //    }
-
-        //    StringBuilder sb = new StringBuilder();
-        //    foreach (string item in list)
-        //    {
-        //        sb.AppendLine(item); // Добавляет элемент и перенос строки в конец
-        //    }
-
-        //    string result = sb.ToString();
-
-        //    panel.Text = result;
-        //}
-
-        //private void MouseLeftButt_onDown(object sender, MouseButtonEventArgs e)
-        //{
-        //    Point positionOnScreen = ProcessIcon.PointToScreen(new Point(0, 0));
-
-        //    double screenX = positionOnScreen.X;
-        //    double screenY = positionOnScreen.Y;
-        //    //// 1. Берем вашу иконку процесса (или ProcessBorder)
-        //    //UIElement element = ProcessIcon;
-
-        //    //// 2. Вычисляем трансформацию относительно главного окна (this)
-        //    //GeneralTransform transform = element.TransformToAncestor(this);
-
-        //    //// 3. Получаем точку (0,0) - верхний левый угол иконки относительно окна
-        //    //Point positionInWindow = transform.Transform(new Point(0, 0));
-
-        //    //// Теперь у вас есть точные X и Y внутри окна:
-        //    //double x = positionInWindow.X;
-        //    //double y = positionInWindow.Y;
-
-        //    //Console.WriteLine(x);
-        //    //Console.WriteLine(y);
-
-        //    // Отмечаем событие как обработанное, чтобы клик не "проваливался" в карточку
-        //    e.Handled = true;
-
-        //    // sender — это именно тот Border внутри InputsPanel, на который нажали
-        //    Border clickedBorder = sender as Border;
-
-        //    if (clickedBorder != null)
-        //    {
-        //        // Пример: получаем координаты этого Border относительно текущего окна карточки
-        //        GeneralTransform transform = clickedBorder.TransformToAncestor(this);
-        //        Point borderPosition = transform.Transform(new Point(0, 0));
-
-        //        // Логика при клике (пока покажем сообщение с координатами)
-        //        //MessageBox.Show($"Нажали на входной ингредиент! Координаты в окне: X={borderPosition.X}, Y={borderPosition.Y} \nКоординаты окна: X={screenX}, Y={screenY}");
-        //    }
-
-        //}
-
-        // Новое событие: передает саму карточку и точку, где нажали
-        public event Action<RecipeCard, Point> IngredientClicked;
-
         private void MouseLeftButt_onDown(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true;
@@ -196,6 +132,11 @@ namespace FactorioModeler.Views
 
             if (clickedBorder != null)
             {
+                clickedBorder.Background = new SolidColorBrush(Color.FromRgb(0x60, 0x60, 0x60)); //606060
+
+                Panel parentPanel = clickedBorder.Parent as Panel;
+                string panelName = parentPanel?.Name ?? "Unknown";
+
                 // Переводим координаты кликнутого Border в координаты относительно ОКНА КАРТОЧКИ
                 GeneralTransform transform = clickedBorder.TransformToAncestor(this);
                 Point borderCenterInCard = transform.Transform(new Point(ICON_SIZE_SINGLE / 2, ICON_SIZE_SINGLE / 2));
@@ -204,16 +145,52 @@ namespace FactorioModeler.Views
                 this.CaptureMouse();
 
                 // Вызываем событие для главного окна
-                IngredientClicked?.Invoke(this, borderCenterInCard);
+                IngredientClicked?.Invoke(this, borderCenterInCard, panelName);
             }
         }
-
 
         private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
             {
-                this.DragMove(); // Запускает встроенный механизм перетаскивания окна
+                // Вместо DragMove запускаем стандартный перенос элемента внутри Canvas
+                var card = this;
+                var canvas = VisualTreeHelper.GetParent(card) as Canvas;
+
+                if (canvas != null)
+                {
+                    e.Handled = true;
+
+                    // Захватываем мышь для перемещения карточки
+                    card.CaptureMouse();
+
+                    Point startMousePos = e.GetPosition(canvas);
+                    double startLeft = Canvas.GetLeft(card);
+                    double startTop = Canvas.GetTop(card);
+
+                    // Если координаты еще не были заданы на Canvas, инициализируем их текущим положением
+                    if (double.IsNaN(startLeft)) startLeft = 0;
+                    if (double.IsNaN(startTop)) startTop = 0;
+
+                    MouseEventHandler mouseMoveHandler = null;
+                    mouseMoveHandler = (s, args) =>
+                    {
+                        Point currentMousePos = args.GetPosition(canvas);
+                        Canvas.SetLeft(card, startLeft + (currentMousePos.X - startMousePos.X));
+                        Canvas.SetTop(card, startTop + (currentMousePos.Y - startMousePos.Y));
+                    };
+
+                    MouseButtonEventHandler mouseUpHandler = null;
+                    mouseUpHandler = (s, args) =>
+                    {
+                        card.ReleaseMouseCapture();
+                        card.MouseMove -= mouseMoveHandler;
+                        card.MouseLeftButtonUp -= mouseUpHandler;
+                    };
+
+                    card.MouseMove += mouseMoveHandler;
+                    card.MouseLeftButtonUp += mouseUpHandler;
+                }
             }
         }
         /// <summary>

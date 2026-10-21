@@ -90,7 +90,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Scripts\Curve.cs" />
+    <Compile Include="Scripts\CurveBuilder.cs" />
     <Compile Include="Views\ExtractorCard.xaml.cs">
       <DependentUpon>ExtractorCard.xaml</DependentUpon>
     </Compile>

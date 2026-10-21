@@ -15,7 +15,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-
 /*
  *     <!-- #2f2f2f color under 
     #606060 color up 
@@ -36,6 +35,8 @@ namespace FactorioModeler
         DataCollector data = new DataCollector();
         private RecipeCard Card = new RecipeCard();
         public string GetStatistics { get; set; }
+        private CurveBuilder _curveBuilder;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -43,7 +44,7 @@ namespace FactorioModeler
 
             data.StartDataColletctor();
             //Console.WriteLine(GetStatistics);
-
+            _curveBuilder = new CurveBuilder(WorkspaceCanvas);
         }
 
 
@@ -58,15 +59,19 @@ namespace FactorioModeler
             if (recipe == null) return;
 
             var card = new RecipeCard();
-            card.Owner = this;              // MainWindow уже показан — ок
+            //card.Owner = this;              // MainWindow уже показан — ок
             card.SpawnCard(recipe, data);   // data — то же поле, что уже есть
+            card.IngredientClicked += WorkspaceCanvas_IngredientClicked;
 
-            // Позиция: у курсора, с небольшим отступом
-            Point screenPos = PointToScreen(Mouse.GetPosition(this));
-            card.Left = screenPos.X + 10;
-            card.Top = screenPos.Y + 10;
+            // Получаем позицию клика мыши относительно ХОЛСТА (а не экрана)
+            Point mousePos = Mouse.GetPosition(WorkspaceCanvas);
 
-            card.Show();
+            // Устанавливаем положение карточки на холсте
+            Canvas.SetLeft(card, mousePos.X + 10);
+            Canvas.SetTop(card, mousePos.Y + 10);
+
+            // Добавляем карточку физически ВНУТРЬ холста главного окна
+            WorkspaceCanvas.Children.Add(card);
         }
 
         // Обработчик нажатия ПКМ в любом месте экрана
@@ -115,5 +120,27 @@ namespace FactorioModeler
 
             e.Handled = true;
         }
+        // 1. НАЧАЛО: Срабатывает, когда кликнули по Border внутри карточки
+        private void WorkspaceCanvas_IngredientClicked(RecipeCard card, Point pointInCard, string panelName)
+        {
+            // Передаем карточку, точку клика и цвет
+
+            _curveBuilder.StartDrawing(card, pointInCard, Color.FromRgb(0xa0, 0xa0, 0xa0), panelName); //a0a0a0
+            
+        }
+
+        // 4. ДВИЖЕНИЕ: Просто передаем позицию мыши в отдельный файл
+        private void WorkspaceCanvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            Point currentMousePoint = e.GetPosition(WorkspaceCanvas);
+            _curveBuilder.UpdateDrawing(currentMousePoint);
+        }
+
+        // 5. ФИНАЛ: Сигнализируем о том, что кнопку отпустили
+        private void WorkspaceCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            _curveBuilder.StopDrawing();
+        }
+
     }
 }

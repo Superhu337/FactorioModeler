@@ -1,17 +1,13 @@
-﻿<Window x:Class="FactorioModeler.Views.RecipeCard"
+﻿<UserControl  x:Class="FactorioModeler.Views.RecipeCard"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FactorioModeler.Views"
         mc:Ignorable="d"
-        WindowStyle="None"
         x:Name="m"
         Width="242" Height="Auto" d:HorizontalAlignment="Center" d:VerticalAlignment="Center"
-        Background="Transparent"
-        ShowInTaskbar="False"
-        AllowsTransparency="True"
-        >
+        Background="Transparent">
 
     <Grid x:Name="MainGrid" MouseLeftButtonDown="Header_MouseLeftButtonDown" Background="Transparent">
         <Grid.RowDefinitions>
@@ -64,5 +60,5 @@
     </Grid>
 
 
-</Window>
+</UserControl>
 
