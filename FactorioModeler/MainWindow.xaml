@@ -11,6 +11,8 @@
         WindowStyle="None"
         xmlns:Views="clr-namespace:FactorioModeler.Views" 
         MouseRightButtonDown="Window_MouseRightButtonDown"
+        MouseMove="WorkspaceCanvas_MouseMove"
+        x:Name="WorkspaceCanvas" 
         >
 
 

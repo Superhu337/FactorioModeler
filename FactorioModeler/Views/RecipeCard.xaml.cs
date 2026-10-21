@@ -116,13 +116,16 @@ namespace FactorioModeler.Views
                     Height = ICON_SIZE_SINGLE
                 };
 
+
+                border.MouseLeftButtonDown += MouseLeftButt_onDown;
+                 
                 border.Child = image;
                 targetpanel.Children.Add(border);
 
             }
         }
 
-        
+
         //public void ChangeText(int a, TextBlock panel)
         //{
         //    List<string> list = [];
@@ -142,7 +145,69 @@ namespace FactorioModeler.Views
 
         //    panel.Text = result;
         //}
-       
+
+        //private void MouseLeftButt_onDown(object sender, MouseButtonEventArgs e)
+        //{
+        //    Point positionOnScreen = ProcessIcon.PointToScreen(new Point(0, 0));
+
+        //    double screenX = positionOnScreen.X;
+        //    double screenY = positionOnScreen.Y;
+        //    //// 1. Берем вашу иконку процесса (или ProcessBorder)
+        //    //UIElement element = ProcessIcon;
+
+        //    //// 2. Вычисляем трансформацию относительно главного окна (this)
+        //    //GeneralTransform transform = element.TransformToAncestor(this);
+
+        //    //// 3. Получаем точку (0,0) - верхний левый угол иконки относительно окна
+        //    //Point positionInWindow = transform.Transform(new Point(0, 0));
+
+        //    //// Теперь у вас есть точные X и Y внутри окна:
+        //    //double x = positionInWindow.X;
+        //    //double y = positionInWindow.Y;
+
+        //    //Console.WriteLine(x);
+        //    //Console.WriteLine(y);
+
+        //    // Отмечаем событие как обработанное, чтобы клик не "проваливался" в карточку
+        //    e.Handled = true;
+
+        //    // sender — это именно тот Border внутри InputsPanel, на который нажали
+        //    Border clickedBorder = sender as Border;
+
+        //    if (clickedBorder != null)
+        //    {
+        //        // Пример: получаем координаты этого Border относительно текущего окна карточки
+        //        GeneralTransform transform = clickedBorder.TransformToAncestor(this);
+        //        Point borderPosition = transform.Transform(new Point(0, 0));
+
+        //        // Логика при клике (пока покажем сообщение с координатами)
+        //        //MessageBox.Show($"Нажали на входной ингредиент! Координаты в окне: X={borderPosition.X}, Y={borderPosition.Y} \nКоординаты окна: X={screenX}, Y={screenY}");
+        //    }
+
+        //}
+
+        // Новое событие: передает саму карточку и точку, где нажали
+        public event Action<RecipeCard, Point> IngredientClicked;
+
+        private void MouseLeftButt_onDown(object sender, MouseButtonEventArgs e)
+        {
+            e.Handled = true;
+            Border clickedBorder = sender as Border;
+
+            if (clickedBorder != null)
+            {
+                // Переводим координаты кликнутого Border в координаты относительно ОКНА КАРТОЧКИ
+                GeneralTransform transform = clickedBorder.TransformToAncestor(this);
+                Point borderCenterInCard = transform.Transform(new Point(ICON_SIZE_SINGLE / 2, ICON_SIZE_SINGLE / 2));
+
+                // Захватываем мышь, чтобы отслеживать отпускание, даже если курсор уйдет с карточки
+                this.CaptureMouse();
+
+                // Вызываем событие для главного окна
+                IngredientClicked?.Invoke(this, borderCenterInCard);
+            }
+        }
+
 
         private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
