@@ -31,7 +31,8 @@
         <Border x:Name="MainBorder" BorderBrush="#a0a0a0" BorderThickness="3" Background="#606060" Grid.RowSpan="2" Grid.ColumnSpan="3" Grid.Column="1"/>
 
         
-        <StackPanel x:Name="InputsNumbers" Grid.Column="0" Margin="3,0,0,0">
+        <StackPanel x:Name="InputsNumbers" Grid.Column="0" Margin="3,3,0,0">
+            <!--<TextBox Text="500" Background="Transparent" Foreground="White"/>-->
         </StackPanel>
 
         <!-- ВХОДЫ (слева) -->

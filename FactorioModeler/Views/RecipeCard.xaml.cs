@@ -95,7 +95,7 @@ namespace FactorioModeler.Views
                 {
                     Text = item.Amount.ToString(),
                     VerticalAlignment = VerticalAlignment.Center,
-                    //Margin = new Thickness(0, 0, 0, 0),
+                    Margin = new Thickness(0, 8, 0, 8),
                     Foreground = new SolidColorBrush(Color.FromRgb(0xf8, 0xf8, 0xf8))
                 };
                 targetpanelNumbers.Children.Add(TextBlock);
