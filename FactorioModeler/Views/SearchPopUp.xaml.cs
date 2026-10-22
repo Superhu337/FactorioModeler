@@ -53,19 +53,29 @@ namespace FactorioModeler.Views
             }
         }
 
-        private void Window_Deactivated(object sender, EventArgs e)
+        // Вместо скрытия всего окна, мы просто делаем его невидимым и прозрачным для кликов мышкой
+        private void HidePopupSmoothly()
         {
-            this.Hide();
+            this.Opacity = 0.0;
+            this.IsHitTestVisible = false;
         }
 
+        // При потере фокуса (кликнули по холсту)
+        private void Window_Deactivated(object sender, EventArgs e)
+        {
+            // БЫЛО: this.Hide();
+            // СТАЛО:
+            HidePopupSmoothly();
+        }
+
+        // При нажатии Esc или выборе рецепта
         private void ClosePopup()
         {
-            if (!_isClosing)
-            {
-                _isClosing = true;
-                this.Close();
-            }
+            // БЫЛО: if (!_isClosing) { _isClosing = true; this.Close(); }
+            // СТАЛО:
+            HidePopupSmoothly();
         }
+
         private void ResultsListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             SpawnSelectedRecipe();

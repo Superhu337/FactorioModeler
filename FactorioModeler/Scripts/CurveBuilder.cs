@@ -65,6 +65,7 @@ namespace FactorioModeler.Scripts
 
             Point controlPoint1;
             Point controlPoint2;
+            Point Z;
 
             if (_startPanelName == "OutputsPanel")
             {
@@ -72,6 +73,9 @@ namespace FactorioModeler.Scripts
                 // а к курсору мыши линия подходит СЛЕВА (-offset)
                 controlPoint1 = new Point(_startPoint.X + offset, _startPoint.Y);
                 controlPoint2 = new Point(currentMousePoint.X - offset, currentMousePoint.Y);
+
+                Z = new Point(16, 0);
+
             }
             else // InputsPanel
             {
@@ -79,9 +83,9 @@ namespace FactorioModeler.Scripts
                 // а к курсору мыши линия подходит СВЕРХУ/СНИЗУ или СПРАВА (+offset)
                 controlPoint1 = new Point(_startPoint.X - offset, _startPoint.Y);
                 controlPoint2 = new Point(currentMousePoint.X + offset, currentMousePoint.Y);
+
+                Z = new Point(-16, 0);
             }
-
-
 
 
             // Формируем геометрию кривой
@@ -90,30 +94,37 @@ namespace FactorioModeler.Scripts
                 new BezierSegment(controlPoint1 , controlPoint2, currentMousePoint, true)
             };
 
-            PathFigure figure = new PathFigure(_startPoint, segments, false);
+            PathFigure figure = new PathFigure(new Point(_startPoint.X + Z.X, _startPoint.Y + Z.Y), segments, false);
             PathGeometry geometry = new PathGeometry();
             geometry.Figures.Add(figure);
 
             // Обновляем Data у активной линии на лету
             _activeCurve.Data = geometry;
+
+
         }
 
         /// <summary>
         /// Остановка рисования и удаление временной линии
         /// </summary>
-        public void StopDrawing()
+        public bool StopDrawing()
         {
-            if (_activeCurve == null) return;
+            // Если активной кривой нет, значит рисование и не начиналось — возвращаем false
+            if (_activeCurve == null) return false;
 
             // Освобождаем захват мыши карточкой
             _activeCard?.ReleaseMouseCapture();
 
-            // Удаляем линию с холста
+            // Удаляем временную "тянущуюся" линию с холста, чтобы она пропала
             _canvas.Children.Remove(_activeCurve);
 
-            // Сбрасываем состояние
+            // Сбрасываем внутреннее состояние
             _activeCurve = null;
             _activeCard = null;
+            _startPanelName = null;
+
+            // Возвращаем true — сигнал для MainWindow, что пора открывать SearchPopUp
+            return true;
         }
     }
 }

@@ -27,9 +27,7 @@
                 Width="Auto" 
                 Height="Auto" 
                 Cursor="Hand"
-                Click="MenuButton_Click"
-                Background="Transparent"
-                BorderThickness="0">
+                Click="MenuButton_Click">
                 <Rectangle Width="32" Height="32" Fill="#f8f8f8">
                     <Rectangle.OpacityMask>
                         <ImageBrush ImageSource="/ui_icons/menu.png"/>

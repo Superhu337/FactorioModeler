@@ -74,28 +74,51 @@ namespace FactorioModeler
             WorkspaceCanvas.Children.Add(card);
         }
 
-        // Обработчик нажатия ПКМ в любом месте экрана
-        private void Window_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        public void OpenSearchPopup(object sender, MouseButtonEventArgs e)
         {
-            // Получаем текущие координаты мыши относительно главного окна
             Point mousePosition = e.GetPosition(this);
-
-            // Переводим их в абсолютные экранные координаты (учитывая, что окно развернуто)
             Point screenPosition = this.PointToScreen(mousePosition);
 
-            // 2. ПРОВЕРКА: Если окно еще не создано ИЛИ оно было закрыто пользователем
+            // 1. Создаем окно только ОДИН РАЗ при самом первом клике в сессии
             if (activeSearchWindow == null || !activeSearchWindow.IsLoaded)
             {
                 activeSearchWindow = new SearchPopUp(data);
                 activeSearchWindow.Owner = this;
+                activeSearchWindow.Show(); // Открываем ОДИН раз на старте программы
             }
 
+            // 2. Рассчитываем координаты удержания в границах экрана
+            Rect workArea = SystemParameters.WorkArea;
+            double x = screenPosition.X - 540 / 2;
+            double y = screenPosition.Y - 440 / 2;
+
+            if (x + activeSearchWindow.Width > workArea.Right) x = workArea.Right - activeSearchWindow.Width;
+            if (y + activeSearchWindow.Height > workArea.Bottom) y = workArea.Bottom - activeSearchWindow.Height;
+            if (x < workArea.Left) x = workArea.Left;
+            if (y < workArea.Top) y = workArea.Top;
+
+            activeSearchWindow.Left = x;
+            activeSearchWindow.Top = y;
+
+            // 3. Вместо Show() плавно делаем его видимым и кликабельным
+            activeSearchWindow.Opacity = 1.0;
+            activeSearchWindow.IsHitTestVisible = true;
+
+            activeSearchWindow.Activate();
+            activeSearchWindow.FocusSearchBox();
+
+            e.Handled = true;
+        }
+
+
+        /*private void PositionAndFocusPopup(Point screenPosition)
+        {
             // --- ЛОГИКА УДЕРЖАНИЯ В ГРАНИЦАХ ЭКРАНА ---
             // Получаем рабочую область экрана (без панели задач)
             Rect workArea = SystemParameters.WorkArea;
 
-            double x = screenPosition.X;
-            double y = screenPosition.Y;
+            double x = screenPosition.X - 540 / 2;
+            double y = screenPosition.Y - 440 / 2;
 
             // Если окно выходит за правую границу
             if (x + activeSearchWindow.Width > workArea.Right)
@@ -114,11 +137,17 @@ namespace FactorioModeler
             activeSearchWindow.Top = y;
 
             // Показываем окно и выводим на передний план
-            activeSearchWindow.Show();
+            activeSearchWindow.Opacity = 1.0;
+            activeSearchWindow.IsHitTestVisible = true;
+
             activeSearchWindow.Activate();
             activeSearchWindow.FocusSearchBox();
 
-            e.Handled = true;
+        }*/
+        // Обработчик нажатия ПКМ в любом месте экрана
+        private void Window_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            OpenSearchPopup(sender, e);
         }
         // 1. НАЧАЛО: Срабатывает, когда кликнули по Border внутри карточки
         private void WorkspaceCanvas_IngredientClicked(RecipeCard card, Point pointInCard, string panelName)
@@ -139,7 +168,12 @@ namespace FactorioModeler
         // 5. ФИНАЛ: Сигнализируем о том, что кнопку отпустили
         private void WorkspaceCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            _curveBuilder.StopDrawing();
+            bool wasDrawing = _curveBuilder.StopDrawing();
+            
+            if (wasDrawing)
+            {
+                OpenSearchPopup(sender, e);
+            }
         }
 
     }
