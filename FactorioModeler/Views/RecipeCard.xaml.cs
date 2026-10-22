@@ -28,12 +28,11 @@ namespace FactorioModeler.Views
         private const string DEFAULT_INPUT_PATH = "/ui_icons/input-default.png";
         private const string DEFAULT_OUTPUT_PATH = "/ui_icons/output-default.png";
 
-        private const int ICON_SIZE_SINGLE = 32;      // Когда 1 вход/выход
-        private const int ICON_SIZE_MULTIPLE = 32;    // Когда 2+ входов/выходов
-        private const int ICON_SPACING = 3;    // Когда 2+ входов/выходов
-        private const int BORDER_THICKNESS = 3;       // Толщина рамки
+        private const int ICON_SIZE_SINGLE = 32;       
+        private const int ICON_SPACING = 3;    
+        private const int BORDER_THICKNESS = 3;      
 
-        public event Action<RecipeCard, Point, string> IngredientClicked;
+        public event Action<RecipeCard, Point, string, Border> IngredientClicked;
 
         public RecipeCard()
         {
@@ -49,9 +48,9 @@ namespace FactorioModeler.Views
             return image;
         }
 
-        public void SpawnCard(FactorioRecipe recipe, DataCollector data)
+        public void SpawnCard(FactorioRecipe recipe, DataCollectorServise data)
         {
-            // Иконка процесса (пока null → дефолт, см. примечание ниже)
+            
             string iconPath = data?.GetRecipeIcon(recipe.Name);
             ProcessIcon.Source = LoadImage(iconPath ?? DEFAULT_ICON_PATH);
 
@@ -100,14 +99,22 @@ namespace FactorioModeler.Views
                 };
                 targetpanelNumbers.Children.Add(TextBlock);
 
+                var borderData = new BorderData
+                {
+                    ItemName = item.Name,
+                    ItemAmount = item.Amount,
+                    PanelName = targetpanel.Name
+                };
+
                 var border = new Border
                 {
                     Width = ICON_SIZE_SINGLE,
                     Height = ICON_SIZE_SINGLE,
-                    //Margin = new Thickness(10,0,0,0),
                     Background = new SolidColorBrush(backgroundColor),
-                    ToolTip = $"{item.Amount}x {item.Name}"   // наглядно
+                    ToolTip = $"{item.Amount}x {item.Name}",
+                    Tag = borderData
                 };
+
 
                 var image = new Image
                 {
@@ -145,7 +152,7 @@ namespace FactorioModeler.Views
                 this.CaptureMouse();
 
                 // Вызываем событие для главного окна
-                IngredientClicked?.Invoke(this, borderCenterInCard, panelName);
+                IngredientClicked?.Invoke(this, borderCenterInCard, panelName, clickedBorder);
             }
         }
 
@@ -221,5 +228,11 @@ namespace FactorioModeler.Views
             MainBorder.Height = requiredHeight; //- BORDER_THICKNESS;
         }
 
+    }
+    public class BorderData
+    {
+        public string ItemName { get; set; }
+        public double ItemAmount { get; set; }
+        public string PanelName { get; set; }
     }
 }

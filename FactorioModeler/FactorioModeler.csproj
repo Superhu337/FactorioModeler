@@ -90,10 +90,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Models\ConnectionInfo.cs" />
+    <Compile Include="Models\RecipeCard.cs" />
     <Compile Include="Scripts\CurveBuilder.cs" />
-    <Compile Include="Views\ExtractorCard.xaml.cs">
-      <DependentUpon>ExtractorCard.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="Services\EventBusService.cs" />
+    <Compile Include="Services\ICardDataExtractor.cs" />
+    <Compile Include="Services\IDataService.cs" />
+    <Compile Include="Models\IEvent.cs" />
+    <Compile Include="Services\IEventBus.cs" />
+    <Compile Include="Services\IWindowManager.cs" />
+    <Compile Include="Services\WindowManagerService.cs" />
+    <Compile Include="ViewModels\IViewModelBase.cs" />
+    <Compile Include="ViewModels\MainWindowViewModel.cs" />
+    <Compile Include="ViewModels\SearchPopUpViewModel.cs" />
     <Compile Include="Views\MenuOnTheRight.xaml.cs">
       <DependentUpon>MenuOnTheRight.xaml</DependentUpon>
     </Compile>
@@ -103,11 +112,7 @@
     <Compile Include="Views\SearchPopUp.xaml.cs">
       <DependentUpon>SearchPopUp.xaml</DependentUpon>
     </Compile>
-    <Page Include="Views\ExtractorCard.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="MainWindow.xaml">
+    <Page Include="Views\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -115,11 +120,11 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Scripts\DataCollector.cs" />
+    <Compile Include="Services\DataCollectorServise.cs" />
     <Compile Include="Scripts\FactorioIconExtractor.cs" />
     <Compile Include="Models\FactorioData.cs" />
     <Compile Include="Scripts\SearchFunc.cs" />
-    <Compile Include="MainWindow.xaml.cs">
+    <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>

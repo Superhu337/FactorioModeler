@@ -13,9 +13,9 @@ namespace FactorioModeler.Views
 {
     public partial class SearchPopUp : Window
     {
-        private readonly DataCollector _dataCollector;
-        private bool _isClosing = false;
-        public SearchPopUp(DataCollector dataCollector)
+        private readonly DataCollectorServise _dataCollector;
+
+        public SearchPopUp(DataCollectorServise dataCollector)
         {
             InitializeComponent();
             _dataCollector = dataCollector;

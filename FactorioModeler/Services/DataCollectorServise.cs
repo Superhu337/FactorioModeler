@@ -15,7 +15,7 @@ using FactorioModeler.Models;
 
 namespace FactorioModeler.Scripts
 {
-    public class DataCollector
+    public class DataCollectorServise
     {
         public string PathToFactorio = SearchFunc.FindFactorioPath();
         public string PathToFactorioExe = SearchFunc.FindFactorioExePath();
@@ -231,16 +231,17 @@ namespace FactorioModeler.Scripts
         /// </summary>
         public void GetItemIcon(string itemName)
         {
-            Console.WriteLine("not implemented");
+            Console.WriteLine("not implemented GetItemIcon");
             //return _iconPaths?.Items?.TryGetValue(itemName, out var path) == true ? path : null;
         }
 
         /// <summary>
-        /// Получить иконку рецепта
+        /// Получить иконку рецепта (NOT WORKING)
         /// </summary>
         public string GetRecipeIcon(string recipeName)
         {
-            return _iconPaths?.Recipes?.TryGetValue(recipeName, out var path) == true ? path : null;
+            Console.WriteLine("not implemented GetRecipeIcon");
+            return null;//_iconPaths?.Recipes?.TryGetValue(recipeName, out var path) == true ? path : null;
         }
 
         // ========================================================================
@@ -413,6 +414,7 @@ namespace FactorioModeler.Scripts
 
             CopyModeToDirectory(ModeSourse, PathToMods, true);
             //LaunchGame(SaveName);
+            Console.WriteLine("Make safe launch of the game");
             LoadAll();
         }
     }
