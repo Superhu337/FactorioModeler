@@ -100,6 +100,7 @@
     <Compile Include="Services\IEventBus.cs" />
     <Compile Include="Services\IWindowManager.cs" />
     <Compile Include="Services\WindowManagerService.cs" />
+    <Content Include="shit.txt" />
     <Compile Include="ViewModels\IViewModelBase.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="ViewModels\SearchPopUpViewModel.cs" />

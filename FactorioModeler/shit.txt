@@ -1,0 +1,637 @@
+﻿Отлично! Я знаю вашу архитектуру. Дам вам стратегию рефакторинга, которая сделает проект масштабируемым и безопасным 🏗️
+
+🎯 Архитектурная стратегия
+
+Проблема вашего текущего кода:
+
+✗ MainWindow жестко привязан к SearchPopUp, MenuOnTheRight, RecipeCard
+✗ Новое окно → нужны изменения в MainWindow → риск регрессии
+✗ Функционал разбросан по разным классам → сложно отследить зависимости
+
+Решение: MVVM + Service-oriented architecture + Event-based communication
+
+📐 Новая структура проекта
+FactorioModeler/
+│
+├── Models/                    (Данные - НЕИЗМЕНЯЕМО)
+│   ├── FactorioData.cs       (Существующие модели)
+│   ├── RecipeCard.cs         (Модель карточки)
+│   └── ConnectionInfo.cs     (Модель соединения)
+│
+├── Services/                  (Бизнес-логика - ПЕРЕИСПОЛЬЗУЕМО)
+│   ├── IDataService.cs       (Интерфейс)
+│   ├── DataCollectorService.cs
+│   ├── IWindowManager.cs     (Новое: управление окнами)
+│   ├── WindowManagerService.cs
+│   ├── IEventBus.cs          (Новое: событийная шина)
+│   ├── EventBusService.cs
+│   └── ICardDataExtractor.cs (Новое: получение данных из карточек)
+│
+├── ViewModels/                (Логика UI - НЕЗАВИСИМО ОТ XAML)
+│   ├── MainWindowViewModel.cs
+│   ├── SearchPopUpViewModel.cs
+│   └── IViewModelBase.cs
+│
+├── Views/                     (XAML окна - ИЗОЛИРОВАНО)
+│   ├── MainWindow.xaml(.cs)
+│   ├── SearchPopUp.xaml(.cs)
+│   ├── MenuOnTheRight.xaml(.cs)
+│   └── [НОВЫЕ ОКНА ЗДЕСЬ]
+│
+└── Scripts/                   (Утилиты - ПЕРЕИСПОЛЬЗУЕМО)
+    ├── CurveBuilder.cs
+    ├── SearchFunc.cs
+    └── PathExtensions.cs
+🔧 Ключевые паттерны
+1️⃣ Интерфейсы (Interfaces) - ЭТО ГЛАВНОЕ!
+csharp
+// Services/IDataService.cs
+public interface IDataService
+{
+    List<FactorioRecipe> GetRecipes();
+    FactorioRecipe GetRecipeByName(string name);
+    string GetRecipeIcon(string recipeName);
+    void StartDataCollection();
+}
+
+// Services/IWindowManager.cs (НОВОЕ!)
+public interface IWindowManager
+{
+    void ShowSearchWindow(Window owner);
+    void ShowSettingsWindow(Window owner);
+    void CloseWindow(string windowName);
+    bool IsWindowOpen(string windowName);
+    // НЕ ДОБАВЛЯЕМ SearchPopUp! Только интерфейс!
+}
+
+// Services/IEventBus.cs (НОВОЕ!)
+public interface IEventBus
+{
+    void Subscribe<TEvent>(Action<TEvent> handler) where TEvent : IEvent;
+    void Publish<TEvent>(TEvent @event) where TEvent : IEvent;
+}
+2️⃣ Dependency Injection (DI) - КОНФИГУРИРУЕМОСТЬ
+csharp
+// App.xaml.cs
+public partial class App : Application
+{
+    private ServiceProvider _serviceProvider;
+
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        // Регистрируем все сервисы в одном месте
+        var services = new ServiceCollection();
+        
+        services.AddSingleton<IDataService, DataCollectorService>();
+        services.AddSingleton<IWindowManager, WindowManagerService>();
+        services.AddSingleton<IEventBus, EventBusService>();
+        services.AddSingleton<ICardDataExtractor, CardDataExtractorService>();
+        
+        services.AddTransient<MainWindow>();
+        services.AddTransient<MainWindowViewModel>();
+        services.AddTransient<SearchPopUp>();
+        services.AddTransient<SearchPopUpViewModel>();
+        // [НОВЫЕ ОКНА ЗДЕСЬ]
+        
+        _serviceProvider = services.BuildServiceProvider();
+        
+        MainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+        MainWindow.Show();
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        _serviceProvider?.Dispose();
+    }
+}
+
+Это можно сделать с обычным Dictionary если не хотите добавлять NuGet пакет:
+
+csharp
+public class ServiceLocator
+{
+    private static readonly Dictionary<Type, Func<object>> _services = new();
+
+    public static void Register<TInterface>(Func<object> factory)
+    {
+        _services[typeof(TInterface)] = factory;
+    }
+
+    public static T Get<T>() where T : class
+    {
+        if (_services.TryGetValue(typeof(T), out var factory))
+            return factory() as T;
+        throw new KeyNotFoundException($"Service {typeof(T).Name} not registered");
+    }
+}
+3️⃣ Event-driven communication - БЕЗ ЖЕСТКИХ ЗАВИСИМОСТЕЙ
+csharp
+// Models/Events.cs (НОВОЕ!)
+public interface IEvent { }
+
+public class CardSelectedEvent : IEvent
+{
+    public RecipeCard Card { get; set; }
+    public BorderData BorderData { get; set; }
+}
+
+public class ConnectionCreatedEvent : IEvent
+{
+    public ConnectionInfo Connection { get; set; }
+}
+
+public class DataLoadedEvent : IEvent
+{
+    public List<FactorioRecipe> Recipes { get; set; }
+}
+
+// Services/EventBusService.cs (НОВОЕ!)
+public class EventBusService : IEventBus
+{
+    private readonly Dictionary<Type, List<Delegate>> _subscribers = new();
+
+    public void Subscribe<TEvent>(Action<TEvent> handler) where TEvent : IEvent
+    {
+        var eventType = typeof(TEvent);
+        if (!_subscribers.ContainsKey(eventType))
+            _subscribers[eventType] = new List<Delegate>();
+        
+        _subscribers[eventType].Add(handler);
+    }
+
+    public void Publish<TEvent>(TEvent @event) where TEvent : IEvent
+    {
+        var eventType = typeof(TEvent);
+        if (_subscribers.TryGetValue(eventType, out var handlers))
+        {
+            foreach (var handler in handlers)
+                (handler as Action<TEvent>)?.Invoke(@event);
+        }
+    }
+}
+4️⃣ RecipeCard extractor - ОТДЕЛЯЕМ ЛОГИКУ
+csharp
+// Services/ICardDataExtractor.cs (НОВОЕ!)
+public interface ICardDataExtractor
+{
+    string GetItemName(RecipeCard card, string panelName);
+    double GetItemAmount(RecipeCard card, string panelName);
+    List<BorderData> GetAllBordersData(RecipeCard card);
+    void ExportCardToJson(RecipeCard card, string filePath);
+}
+
+// Services/CardDataExtractorService.cs (НОВОЕ!)
+public class CardDataExtractorService : ICardDataExtractor
+{
+    private readonly IDataService _dataService;
+
+    public CardDataExtractorService(IDataService dataService)
+    {
+        _dataService = dataService;
+    }
+
+    public string GetItemName(RecipeCard card, string panelName)
+    {
+        // Получаем данные БЕЗ привязки к MainWindow или другим окнам
+        // Просто работаем с card и panelName
+        // Можно переиспользовать в других местах!
+    }
+
+    public List<BorderData> GetAllBordersData(RecipeCard card)
+    {
+        var result = new List<BorderData>();
+        // Парсим card и собираем все BorderData
+        return result;
+    }
+
+    public void ExportCardToJson(RecipeCard card, string filePath)
+    {
+        var data = GetAllBordersData(card);
+        var json = JsonSerializer.Serialize(data);
+        File.WriteAllText(filePath, json);
+    }
+}
+🏗️ Рефакторинг существующих классов
+MainWindow ПОСЛЕ
+csharp
+public partial class MainWindow : Window
+{
+    private readonly IDataService _dataService;
+    private readonly IWindowManager _windowManager;
+    private readonly IEventBus _eventBus;
+    private readonly ICardDataExtractor _cardDataExtractor;
+
+    public MainWindow(
+        IDataService dataService,
+        IWindowManager windowManager,
+        IEventBus eventBus,
+        ICardDataExtractor cardDataExtractor)
+    {
+        InitializeComponent();
+        
+        _dataService = dataService;
+        _windowManager = windowManager;
+        _eventBus = eventBus;
+        _cardDataExtractor = cardDataExtractor;
+
+        // Подписываемся на события
+        _eventBus.Subscribe<CardSelectedEvent>(OnCardSelected);
+        _eventBus.Subscribe<ConnectionCreatedEvent>(OnConnectionCreated);
+        _eventBus.Subscribe<DataLoadedEvent>(OnDataLoaded);
+    }
+
+    private void MenuButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Не создаем MenuOnTheRight здесь!
+        // Просто говорим менеджеру окон показать его
+        _windowManager.ShowMenuWindow(this);
+    }
+
+    private void Window_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _windowManager.ShowSearchWindow(this);
+    }
+
+    // Обработчики событий
+    private void OnCardSelected(CardSelectedEvent @event)
+    {
+        // Получаем данные из карточки БЕЗ сложной логики
+        var itemName = _cardDataExtractor.GetItemName(
+            @event.Card, 
+            @event.BorderData.PanelName);
+        
+        Console.WriteLine($"Selected: {itemName}");
+    }
+
+    private void OnConnectionCreated(ConnectionCreatedEvent @event)
+    {
+        CreatePermanentConnection(@event.Connection);
+    }
+
+    private void OnDataLoaded(DataLoadedEvent @event)
+    {
+        Console.WriteLine($"Loaded {(@event.Recipes?.Count ?? 0)} recipes");
+    }
+}
+SearchPopUp ПОСЛЕ
+csharp
+public partial class SearchPopUp : Window
+{
+    private readonly IDataService _dataService;
+    private readonly IEventBus _eventBus;
+
+    public SearchPopUp(IDataService dataService, IEventBus eventBus)
+    {
+        InitializeComponent();
+        _dataService = dataService;
+        _eventBus = eventBus;
+    }
+
+    private void SpawnSelectedRecipe()
+    {
+        if (ResultsListBox.SelectedItem is FactorioRecipe recipe)
+        {
+            // Публикуем событие вместо вызова MainWindow.CreateRecipeCard()
+            // Так добавляем слабую связь!
+            _eventBus.Publish(new RecipeSpawnedEvent { Recipe = recipe });
+            
+            Close();
+        }
+    }
+}
+
+// Models/Events.cs
+public class RecipeSpawnedEvent : IEvent
+{
+    public FactorioRecipe Recipe { get; set; }
+}
+CurveBuilder ПОСЛЕ
+csharp
+public class CurveBuilder
+{
+    private readonly Canvas _canvas;
+    private readonly IEventBus _eventBus;  // НОВОЕ!
+
+    public CurveBuilder(Canvas canvas, IEventBus eventBus)
+    {
+        _canvas = canvas;
+        _eventBus = eventBus;
+    }
+
+    public bool StopDrawing(out ConnectionInfo connection)
+    {
+        // ... существующий код ...
+        
+        if (connection != null)
+        {
+            // ПУБЛИКУЕМ событие вместо вызова MainWindow.CreatePermanentConnection()
+            _eventBus.Publish(new ConnectionCreatedEvent { Connection = connection });
+        }
+        
+        return true;
+    }
+}
+🆕 Добавление НОВОГО окна (например, Settings)
+ДО (сложно):
+Создать SettingsWindow.xaml(.cs)
+Добавить SettingsPopUp в MainWindow
+Добавить кнопку “Settings” в MenuOnTheRight
+Добавить логику открытия в MainWindow_xaml.cs
+✗ Рискуем сломать существующий функционал
+ПОСЛЕ (просто):
+csharp
+// 1. Создать окно
+public partial class SettingsWindow : Window
+{
+    private readonly IDataService _dataService;
+    
+    public SettingsWindow(IDataService dataService)
+    {
+        InitializeComponent();
+        _dataService = dataService;
+    }
+}
+
+// 2. Зарегистрировать в App.xaml.cs
+services.AddTransient<SettingsWindow>();
+
+// 3. Добавить в IWindowManager
+public interface IWindowManager
+{
+    void ShowSettingsWindow(Window owner);
+}
+
+// 4. Реализовать в WindowManagerService
+public class WindowManagerService : IWindowManager
+{
+    private readonly IServiceProvider _serviceProvider;
+    private readonly Dictionary<string, Window> _openWindows = new();
+
+    public void ShowSettingsWindow(Window owner)
+    {
+        var window = _serviceProvider.GetRequiredService<SettingsWindow>();
+        window.Owner = owner;
+        window.Show();
+    }
+}
+
+// 5. Использовать в MenuOnTheRight (БЕЗ изменений в MainWindow!)
+public partial class MenuOnTheRight : UserControl
+{
+    private readonly IWindowManager _windowManager;
+
+    public void Settings_Click(object sender, RoutedEventArgs e)
+    {
+        var mainWindow = Window.GetWindow(this) as Window;
+        _windowManager.ShowSettingsWindow(mainWindow);
+    }
+}
+
+✅ MainWindow НЕ ИЗМЕНИЛСЯ! Не нужно трогать существующий код!
+
+📊 Добавление НОВОГО функционала (например, экспорт данных из карточек)
+csharp
+// 1. Создать интерфейс
+public interface ICardDataAnalyzer
+{
+    Dictionary<string, int> AnalyzeProductionChain(RecipeCard startCard);
+    List<RecipeCard> FindConnectedCards(RecipeCard card);
+    ExportReport GenerateReport(List<RecipeCard> cards);
+}
+
+// 2. Реализовать
+public class CardDataAnalyzerService : ICardDataAnalyzer
+{
+    private readonly IDataService _dataService;
+    private readonly ICardDataExtractor _extractor;
+
+    public Dictionary<string, int> AnalyzeProductionChain(RecipeCard startCard)
+    {
+        var result = new Dictionary<string, int>();
+        // Анализируем цепочку производства
+        // БЕЗ привязки к UI!
+        return result;
+    }
+}
+
+// 3. Зарегистрировать
+services.AddSingleton<ICardDataAnalyzer, CardDataAnalyzerService>();
+
+// 4. Использовать в новом окне (или старом)
+public partial class AnalyticsWindow : Window
+{
+    private readonly ICardDataAnalyzer _analyzer;
+
+    public AnalyticsWindow(ICardDataAnalyzer analyzer)
+    {
+        InitializeComponent();
+        _analyzer = analyzer;
+    }
+
+    private void ShowAnalysis(RecipeCard card)
+    {
+        var analysis = _analyzer.AnalyzeProductionChain(card);
+        // Показываем результаты
+    }
+}
+✅ Преимущества этого подхода
+Аспект	ДО (Текущий код)	ПОСЛЕ (Новая архитектура)
+Добавить окно	Изменяем MainWindow	Только регистрируем в App
+Новый функционал	Сложные зависимости	IService + DI
+Тестирование	Невозможно (WPF привязки)	Легко (интерфейсы)
+Переиспользование	Зависит от MainWindow	Независимые сервисы
+Связанность	Жесткая (tight coupling)	Слабая (loose coupling)
+Поломка кода	🔴 Часто	✅ Редко
+🎬 Пошаговый план реализации
+
+Этап 1 (1-2 часа): Создать интерфейсы и сервисы
+
+Создать папку Services/
+Написать IDataService, IWindowManager, IEventBus, ICardDataExtractor
+Написать реализации
+
+Этап 2 (2-3 часа): Рефакторить существующие классы
+
+Обновить MainWindow для использования DI
+Обновить SearchPopUp
+Обновить CurveBuilder
+Обновить App.xaml.cs
+
+Этап 3 (1 час): Добавить EventBus
+
+Тесты для новых окон будут проще
+Слабая связь между компонентами
+
+Этап 4 (30 мин): Протестировать старый функционал
+
+Убедиться, что ничего не сломалось
+
+Этап 5 (свободно): Добавлять новые окна и функционал
+
+Ничего не сломается!
+
+Нужно ли мне создать готовый шаблон с этой архитектурой для вашего проекта? 🎯
+
+Серьезность Код Описание Проект Файл Строка Состояние подавления Подробности Ошибка (активно) CS0246 Не удалось найти тип или имя пространства имен "IEvent" (возможно, отсутствует директива using или ссылка на сборку). FactorioModeler C:\Users\dima\source\repos\FactorioModeler\FactorioModeler\Services\IEventBus.cs 11
+
+Диагностика отсутствующего типа IEvent в коде пользователя.
+
+Ошибка потому что я дал архитектурный план, но забыл создать полный рабочий код! 😅
+
+Вот готовые файлы — просто скопируйте их в проект:
+
+Ответ Claude был прерван.
+
+нет не пиши код (я сам хочу). я вижу что код жалуется на отсутствие IEvent но я не знаю что туда добавить
+
+Объяснение назначения маркерного интерфейса IEvent.
+
+Ах, понял! 😅 Тебе просто нужно понимание, что это такое.
+
+🎯 Что такое IEvent?
+
+IEvent — это маркерный интерфейс (пустой интерфейс). Он нужен только чтобы пометить классы как "события".
+
+Вот всё, что в нём есть:
+
+csharp
+public interface IEvent
+{
+}
+
+Да, просто пустой интерфейс. Ничего больше.
+
+🔍 Зачем он нужен?
+
+Смотри, когда ты пишешь в EventBus:
+
+csharp
+public interface IEventBus
+{
+    void Subscribe<TEvent>(Action<TEvent> handler) where TEvent : IEvent;
+    //                                                  ↑ ВОТ ЗДЕСЬ!
+    void Publish<TEvent>(TEvent @event) where TEvent : IEvent;
+}
+
+Условие where TEvent : IEvent означает: “TEvent должен наследовать IEvent”
+
+Это гарантирует, что ты можешь публиковать только события, которые реализуют IEvent.
+
+📝 Пример
+csharp
+// ✅ ПРАВИЛЬНО - наследует IEvent
+public class CardSelectedEvent : IEvent
+{
+    public string ItemName { get; set; }
+}
+
+// ❌ ОШИБКА - не наследует IEvent
+public class RandomEvent
+{
+    public string Message { get; set; }
+}
+
+// Использование:
+eventBus.Publish(new CardSelectedEvent { ItemName = "iron-plate" }); // ✅ ОК
+eventBus.Publish(new RandomEvent { Message = "hello" }); // ❌ ОШИБКА КОМПИЛЯЦИИ
+🔧 Что добавить?
+
+Просто создай файл IEvent.cs в папке Models/ с содержимым:
+
+csharp
+namespace FactorioModeler.Models
+{
+    public interface IEvent
+    {
+    }
+}
+
+И всё. Ничего больше туда не добавляется.
+
+Затем все события (CardSelectedEvent, ConnectionCreatedEvent, и т.д.) наследуют этот интерфейс:
+
+csharp
+public class CardSelectedEvent : IEvent
+{
+    public RecipeCard Card { get; set; }
+}
+
+public class ConnectionCreatedEvent : IEvent
+{
+    public ConnectionInfo Connection { get; set; }
+}
+
+Вот и вся магия! 🪄
+
+опиши назначение каждого файла и принцип их работы. напиши как мне добавлять новый функцианал
+
+Назначение файлов и принцип работы
+Главная идея
+
+Сейчас окна знают друг о друге напрямую: SearchPopUp вызывает MainWindow.CreateRecipeCard, а MainWindow создаёт SearchPopUp. Поэтому любое новое окно требует правок в старых.
+
+После рефакторинга компоненты общаются через посредников:
+
+События (EventBus): «что-то произошло», отправитель не знает, кто слушает.
+Интерфейсы сервисов: «мне нужна функция X», а кто её реализует, неважно.
+WindowManager: единственное место, которое знает, как создавать и показывать окна.
+Файлы по слоям
+Models/
+FactorioData.cs (уже есть). Только данные: рецепты, предметы, машины. Логики и ссылок на UI нет.
+IEvent.cs. Пустой интерфейс-маркер. Нужен, чтобы EventBus принимал только классы, помеченные как события.
+ConnectionInfo / BorderData. Это тоже данные: «что соединили» и «что лежит в иконке». Сейчас они лежат внутри CurveBuilder.cs и RecipeCard.xaml.cs. Вынеси их в Models, чтобы не было циклических зависимостей между Views и Scripts.
+Services/
+IEventBus + EventBusService. Хранит словарь «тип события → список подписчиков». Subscribe добавляет обработчик, Publish вызывает всех подписанных на этот тип. Это почтовое отделение: отправитель и получатель друг друга не знают.
+ApplicationEvents.cs. Набор классов-событий: RecipeSpawnedEvent, ConnectionCreatedEvent, IngredientClickedEvent и т.д. Каждый несёт только данные о случившемся. Это контракт между частями программы.
+IDataService + DataCollector. Сейчас DataCollector и запускает игру, и хранит данные, и ищет. Интерфейс оставляет окнам только то, что им нужно: GetRecipes(), GetRecipeIcon(). Окнам не нужно знать про запуск Factorio.
+IWindowManager + WindowManagerService. Знает, как создать каждое окно, где его позиционировать и когда переиспользовать (твоя логика с Opacity для поиска переедет сюда). Окна просят: «покажи поиск», не зная, как он устроен.
+ICardDataExtractor. Читает данные из карточек: названия предметов, количества, список всех иконок. Сейчас такая логика размазана по CurveBuilder и RecipeCard. Все новые функции «получить инфу из карточек» опираются на него.
+Views/
+
+Окна и контролы. Они делают три вещи: рисуют UI, ловят действия пользователя и публикуют события или вызывают сервисы. Бизнес-логики внутри быть не должно.
+
+Scripts/
+
+CurveBuilder, SearchFunc, PathExtensions. Утилиты без знания об окнах. CurveBuilder лучше не вызывает MainWindow, а возвращает результат или публикует событие.
+
+App.xaml.cs
+
+Composition root: единственное место, где создаются и связываются все сервисы. Здесь решается, какая реализация стоит за каждым интерфейсом.
+
+Как это работает на примере
+
+Пользователь выбирает рецепт в поиске:
+
+SearchPopUp публикует RecipeSpawnedEvent и ничего не знает про MainWindow.
+MainWindow подписан на это событие и создаёт карточку на холсте.
+Если позже понадобится окно статистики, которое тоже реагирует на новые карточки, оно просто подписывается на то же событие. Старый код не меняется.
+Как добавлять новый функционал
+Новое окно
+Создай XAML-окно. Зависимости (сервисы, шина) принимай через конструктор.
+Добавь метод показа в IWindowManager и реализуй его в сервисе.
+Зарегистрируй окно в App.xaml.cs.
+Вызови показ из нужного места (кнопка меню и т.п.).
+
+MainWindow и остальные окна не меняются.
+
+Новая функция «получить данные из карточек»
+Реши, это запрос («дай мне суммарные входы всех карточек») или реакция («когда создана связь, пересчитай»).
+Запрос оформи как новый интерфейс-сервис (например, ICardAnalyzer) с реализацией. Он работает с данными, а не с элементами WPF.
+Реакцию оформи подпиской сервиса на существующие события.
+Зарегистрируй в App.xaml.cs, подключи в нужном окне через конструктор.
+Новое событие
+
+Если нужно сообщить о чём-то новом (например, «карточка удалена»), добавь класс в ApplicationEvents.cs и публикуй его там, где это происходит. Подписчики добавляются независимо.
+
+Правило для себя
+Если окно А хочет что-то получить, оно идёт через сервис-интерфейс.
+Если окно А хочет сообщить, что что-то произошло, оно публикует событие.
+Если окно А хочет показать другое окно, оно идёт через IWindowManager.
+Напрямую вызывать методы другого окна нельзя.
+Подводные камни
+Утечки подписок. Шина хранит ссылки на обработчики. Если карточку удалили с холста, но не отписали, она остаётся в памяти и продолжает реагировать. Поэтому в интерфейсе нужен Unsubscribe, и вызывать его надо при удалении карточки или закрытии окна.
+Не превращай всё в события. Для прямых запросов («дай данные») события неудобны, там нужны сервисы. События только для «это произошло».
+DI-контейнер необязателен. Microsoft.Extensions.DependencyInjection ставится через NuGet и работает на .NET Framework 4.8.1. Но для проекта такого размера можно сначала обойтись ручным созданием сервисов в App.xaml.cs и перейти на контейнер позже.
+Порядок работ. Не переписывай всё сразу. Сначала IEvent + EventBus и перевод одного сценария (поиск → создание карточки), проверь, что работает, потом остальное. Так ошибки видны сразу, а не накапливаются.
+
+Если захочешь, могу проверить твой код после каждого шага или объяснить любой из пунктов подробнее.
