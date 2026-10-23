@@ -1,6 +1,4 @@
-﻿using FactorioModeler.Models;
-using FactorioModeler.Scripts;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json; // нужно для работы с JsonElement
@@ -8,6 +6,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;      // Для Keyboard.Focus
 using System.Windows.Threading;
+
+using FactorioModeler.Models;
+using FactorioModeler.Scripts;
+using FactorioModeler.Services;
+using FactorioModeler.ViewModels;
+
 
 namespace FactorioModeler.Views
 {

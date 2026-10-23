@@ -13,15 +13,17 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+
+
 namespace FactorioModeler.Views
 {
     /// <summary>
-    /// Логика взаимодействия для MenuOnTheRight.xaml
+    /// Логика взаимодействия для SettingsMenu.xaml
     /// </summary>
-    public partial class MenuOnTheRight : UserControl
+    public partial class SettingsMenu : UserControl
     {
 
-        public MenuOnTheRight()
+        public SettingsMenu()
         {
             InitializeComponent();
         }

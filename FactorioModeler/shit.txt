@@ -4,7 +4,7 @@
 
 Проблема вашего текущего кода:
 
-✗ MainWindow жестко привязан к SearchPopUp, MenuOnTheRight, RecipeCard
+✗ MainWindow жестко привязан к SearchPopUp, SettingsMenu, RecipeCard
 ✗ Новое окно → нужны изменения в MainWindow → риск регрессии
 ✗ Функционал разбросан по разным классам → сложно отследить зависимости
 
@@ -35,13 +35,14 @@ FactorioModeler/
 ├── Views/                     (XAML окна - ИЗОЛИРОВАНО)
 │   ├── MainWindow.xaml(.cs)
 │   ├── SearchPopUp.xaml(.cs)
-│   ├── MenuOnTheRight.xaml(.cs)
+│   ├── SettingsMenu.xaml(.cs)
 │   └── [НОВЫЕ ОКНА ЗДЕСЬ]
 │
 └── Scripts/                   (Утилиты - ПЕРЕИСПОЛЬЗУЕМО)
     ├── CurveBuilder.cs
     ├── SearchFunc.cs
     └── PathExtensions.cs
+
 🔧 Ключевые паттерны
 1️⃣ Интерфейсы (Interfaces) - ЭТО ГЛАВНОЕ!
 csharp
@@ -70,6 +71,7 @@ public interface IEventBus
     void Subscribe<TEvent>(Action<TEvent> handler) where TEvent : IEvent;
     void Publish<TEvent>(TEvent @event) where TEvent : IEvent;
 }
+
 2️⃣ Dependency Injection (DI) - КОНФИГУРИРУЕМОСТЬ
 csharp
 // App.xaml.cs
@@ -124,6 +126,7 @@ public class ServiceLocator
         throw new KeyNotFoundException($"Service {typeof(T).Name} not registered");
     }
 }
+
 3️⃣ Event-driven communication - БЕЗ ЖЕСТКИХ ЗАВИСИМОСТЕЙ
 csharp
 // Models/Events.cs (НОВОЕ!)
@@ -242,7 +245,7 @@ public partial class MainWindow : Window
 
     private void MenuButton_Click(object sender, RoutedEventArgs e)
     {
-        // Не создаем MenuOnTheRight здесь!
+        // Не создаем SettingsMenu здесь!
         // Просто говорим менеджеру окон показать его
         _windowManager.ShowMenuWindow(this);
     }
@@ -335,7 +338,7 @@ public class CurveBuilder
 ДО (сложно):
 Создать SettingsWindow.xaml(.cs)
 Добавить SettingsPopUp в MainWindow
-Добавить кнопку “Settings” в MenuOnTheRight
+Добавить кнопку “Settings” в SettingsMenu
 Добавить логику открытия в MainWindow_xaml.cs
 ✗ Рискуем сломать существующий функционал
 ПОСЛЕ (просто):
@@ -375,8 +378,8 @@ public class WindowManagerService : IWindowManager
     }
 }
 
-// 5. Использовать в MenuOnTheRight (БЕЗ изменений в MainWindow!)
-public partial class MenuOnTheRight : UserControl
+// 5. Использовать в SettingsMenu (БЕЗ изменений в MainWindow!)
+public partial class SettingsMenu : UserControl
 {
     private readonly IWindowManager _windowManager;
 
@@ -564,6 +567,9 @@ public class ConnectionCreatedEvent : IEvent
 Вот и вся магия! 🪄
 
 опиши назначение каждого файла и принцип их работы. напиши как мне добавлять новый функцианал
+
+
+
 
 Назначение файлов и принцип работы
 Главная идея

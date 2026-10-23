@@ -73,7 +73,7 @@
             
             
             
-                <Views:MenuOnTheRight/>
+                <Views:SettingsMenu/>
             </Popup>
         </StackPanel>
 

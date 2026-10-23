@@ -90,23 +90,26 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Models\BorderData.cs" />
     <Compile Include="Models\ConnectionInfo.cs" />
     <Compile Include="Models\RecipeCard.cs" />
     <Compile Include="Scripts\CurveBuilder.cs" />
+    <Compile Include="Services\CardDataExtractorService.cs" />
     <Compile Include="Services\EventBusService.cs" />
     <Compile Include="Services\ICardDataExtractor.cs" />
     <Compile Include="Services\IDataService.cs" />
-    <Compile Include="Models\IEvent.cs" />
+    <Compile Include="Models\Event.cs" />
     <Compile Include="Services\IEventBus.cs" />
     <Compile Include="Services\IWindowManager.cs" />
+    <Compile Include="Services\ServiceLocator.cs" />
     <Compile Include="Services\WindowManagerService.cs" />
+    <Compile Include="Views\SettingsMenu.xaml.cs">
+      <DependentUpon>SettingsMenu.xaml</DependentUpon>
+    </Compile>
     <Content Include="shit.txt" />
     <Compile Include="ViewModels\IViewModelBase.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="ViewModels\SearchPopUpViewModel.cs" />
-    <Compile Include="Views\MenuOnTheRight.xaml.cs">
-      <DependentUpon>MenuOnTheRight.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Views\RecipeCard.xaml.cs">
       <DependentUpon>RecipeCard.xaml</DependentUpon>
     </Compile>
@@ -129,15 +132,15 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Views\MenuOnTheRight.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Views\RecipeCard.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\SearchPopUp.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SettingsMenu.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -132,74 +132,6 @@ namespace FactorioModeler.Views
             }
         }
 
-        private void MouseLeftButt_onDown(object sender, MouseButtonEventArgs e)
-        {
-            e.Handled = true;
-            Border clickedBorder = sender as Border;
-
-            if (clickedBorder != null)
-            {
-                clickedBorder.Background = new SolidColorBrush(Color.FromRgb(0x60, 0x60, 0x60)); //606060
-
-                Panel parentPanel = clickedBorder.Parent as Panel;
-                string panelName = parentPanel?.Name ?? "Unknown";
-
-                // Переводим координаты кликнутого Border в координаты относительно ОКНА КАРТОЧКИ
-                GeneralTransform transform = clickedBorder.TransformToAncestor(this);
-                Point borderCenterInCard = transform.Transform(new Point(ICON_SIZE_SINGLE / 2, ICON_SIZE_SINGLE / 2));
-
-                // Захватываем мышь, чтобы отслеживать отпускание, даже если курсор уйдет с карточки
-                this.CaptureMouse();
-
-                // Вызываем событие для главного окна
-                IngredientClicked?.Invoke(this, borderCenterInCard, panelName, clickedBorder);
-            }
-        }
-
-        private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ChangedButton == MouseButton.Left)
-            {
-                // Вместо DragMove запускаем стандартный перенос элемента внутри Canvas
-                var card = this;
-                var canvas = VisualTreeHelper.GetParent(card) as Canvas;
-
-                if (canvas != null)
-                {
-                    e.Handled = true;
-
-                    // Захватываем мышь для перемещения карточки
-                    card.CaptureMouse();
-
-                    Point startMousePos = e.GetPosition(canvas);
-                    double startLeft = Canvas.GetLeft(card);
-                    double startTop = Canvas.GetTop(card);
-
-                    // Если координаты еще не были заданы на Canvas, инициализируем их текущим положением
-                    if (double.IsNaN(startLeft)) startLeft = 0;
-                    if (double.IsNaN(startTop)) startTop = 0;
-
-                    MouseEventHandler mouseMoveHandler = null;
-                    mouseMoveHandler = (s, args) =>
-                    {
-                        Point currentMousePos = args.GetPosition(canvas);
-                        Canvas.SetLeft(card, startLeft + (currentMousePos.X - startMousePos.X));
-                        Canvas.SetTop(card, startTop + (currentMousePos.Y - startMousePos.Y));
-                    };
-
-                    MouseButtonEventHandler mouseUpHandler = null;
-                    mouseUpHandler = (s, args) =>
-                    {
-                        card.ReleaseMouseCapture();
-                        card.MouseMove -= mouseMoveHandler;
-                        card.MouseLeftButtonUp -= mouseUpHandler;
-                    };
-
-                    card.MouseMove += mouseMoveHandler;
-                    card.MouseLeftButtonUp += mouseUpHandler;
-                }
-            }
-        }
         /// <summary>
         /// Изменить размер карточки в зависимости от количества входов/выходов
         /// </summary>
@@ -229,10 +161,5 @@ namespace FactorioModeler.Views
         }
 
     }
-    public class BorderData
-    {
-        public string ItemName { get; set; }
-        public double ItemAmount { get; set; }
-        public string PanelName { get; set; }
-    }
+
 }

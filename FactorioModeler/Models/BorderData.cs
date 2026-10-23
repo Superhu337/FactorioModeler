@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace FactorioModeler.Models
 {
-    public interface IEvent
+    public class BorderData
     {
+        public string ItemName { get; set; }
+        public double ItemAmount { get; set; }
+        public string PanelName { get; set; }
     }
 }
